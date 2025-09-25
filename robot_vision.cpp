@@ -1,9 +1,14 @@
 #include <iostream>
 #include <utility>
 #include <opencv2/opencv.hpp>
+
+#include "absl/flags/flag.h"
 #include "tag36h11.h"
 
 constexpr char famname[] = "tag36h11";
+
+// Read the docs here: https://abseil.io/docs/cpp/guides/flags
+ABSL_FLAG(int, camera, 0, "Camera ID");
 
 class RobotVisionError : public std::runtime_error {
   public:
