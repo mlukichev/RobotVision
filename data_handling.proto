@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package data_handiling;
+
+message RobotPoistionResponse {
+  int32 rows = 1;
+  int32 cols = 2;
+  bytes data = 3;
+}
+
+message RobotPositionRequest {
+
+}
+
+service GetPosition {
+  rpc GetRobotPositions(RobotPoistionRequest) returns(RobotPositionRespnse);
+}

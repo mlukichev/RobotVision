@@ -1,6 +1,8 @@
+.cmake/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
 robot_vision
 CMakeFiles/
 third_party/
+build/
