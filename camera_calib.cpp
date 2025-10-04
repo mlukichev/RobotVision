@@ -2,7 +2,12 @@
 #include <fstream>
 #include <opencv2/opencv.hpp>
 
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
+#include "absl/log/log.h"
 #include "camera.h"
+
+ABSL_FLAG(int, camera, 0, "Camera ID.");
 
 namespace {
 
@@ -13,22 +18,22 @@ using robot_vision::SerializeCam;
 Camera CreateCamFromImages(cv::Vec3d cam_pos, double p, double y, double r, int chessboard_x, int chessboard_y, double chessboard_l) {
   cv::Mat frame;
 
-  cv::VideoCapture cap(0);
+  cv::VideoCapture cap(absl::GetFlag(FLAGS_camera));
 
-  std::vector<std::vector<cv::Point2i>> img_points;
+  std::vector<std::vector<cv::Point2f>> img_points;
 
   if (!cap.isOpened()) {
     std::cerr << "ERROR! Unable to open camera\n";
   }
 
-  std::vector<cv::Vec3d> obj_points;
+  std::vector<cv::Point3f> obj_points;
   for (int i=0; i<chessboard_x; ++i) {
     for (int j=0; j<chessboard_y; ++j) {
-      obj_points.push_back(cv::Vec3d(i*chessboard_x, j*chessboard_y, 0.0));
+      obj_points.push_back(cv::Point3f(i*chessboard_x, j*chessboard_y, 0.0));
     }
   }
 
-  std::vector<std::vector<cv::Vec3d>> t_obj_points;
+  std::vector<std::vector<cv::Point3f>> t_obj_points;
 
   while (true) {
     cap.read(frame);
@@ -38,13 +43,23 @@ Camera CreateCamFromImages(cv::Vec3d cam_pos, double p, double y, double r, int 
       break;
     }
 
-    int key = cv::waitKey(100);
+    int key = cv::waitKey(30);
+    if (key >= 0) {
+      std::cerr << "key: " << (int) key << std::endl; 
+    }
+    
+    std::vector<cv::Point2f> find_out;
+    cv::findChessboardCorners(frame, cv::Size(chessboard_x, chessboard_y), find_out);
+    if (find_out.size() > 0) {
+      cv::Point2f prev = find_out[0];
+      for (cv::Point2f e : find_out) {
+        cv::line(frame, prev, e, cv::Scalar(255, 0, 0), cv::LINE_AA);
+        prev = e;
+      }
+    }
+    cv::imshow("Calib", frame);
 
-    imshow("Live", frame);
-
-    if (key == (uchar)' ') {
-      std::vector<cv::Point2i> find_out;
-      cv::findChessboardCorners(frame, cv::Size(chessboard_x, chessboard_y), find_out);
+    if (key == 32) {
       img_points.push_back(find_out);
       t_obj_points.push_back(obj_points);
       continue;
@@ -55,17 +70,22 @@ Camera CreateCamFromImages(cv::Vec3d cam_pos, double p, double y, double r, int 
     }
   }
 
+  for (int i=0; i<img_points.size(); ++i) {
+    std::cerr << img_points[i].size() << std::endl;
+  }
+
   cv::Mat cam_mat, dist_coef, rvecs, tvecs;
 
   cv::calibrateCamera(t_obj_points, img_points, cv::Size(frame.rows, frame.cols), cam_mat, dist_coef, rvecs, tvecs);
 
-  Camera out = ConstructCamera(cam_pos, p, y, r, cam_mat, dist_coef);
+  return ConstructCamera(cam_pos, p, y, r, cam_mat, dist_coef);
 }
 
 }  // namespace
 
-int main() {
-  Camera cam = CreateCamFromImages(cv::Vec3d(0, 0, 0), 0, 0, 0, 5, 5, 36.1);
+int main(int argc, char* argv[]) {
+  absl::ParseCommandLine(argc, argv);
+  Camera cam = CreateCamFromImages(cv::Vec3d(0, 0, 0), 0, 0, 0, 4, 4, 36.1);
   std::ofstream out("a.out");
   SerializeCam(cam, out);
   return 0;

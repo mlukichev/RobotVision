@@ -26,7 +26,8 @@ target_link_libraries(robot_vision PRIVATE
   apriltag
   ${OpenCV_LIBRARIES}
   absl::flags
-)
+  absl::log
+)  
 
 # target_link_libraries(camera_handling PRIVATE 
 #   apriltag 
@@ -42,6 +43,8 @@ target_link_libraries(camera_calib PRIVATE
   apriltag
   ${OpenCV_LIBRARIES}
   absl::flags
+  absl::flags_parse
+  absl::log
 
   robot_vision
 )

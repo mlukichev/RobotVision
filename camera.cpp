@@ -63,12 +63,7 @@ Camera ConstructCamera(cv::Vec3d cam_pos, double p, double y, double r, cv::Mat 
     0, std::sin(r), std::cos(r)
   );
   cv::Mat rot_mat = pitch * yaw * roll;
-  out.pos = (cv::Mat_<double>(4, 4) << 
-    rot_mat.at<double>(0, 0), rot_mat.at<double>(0, 1), rot_mat.at<double>(0, 2), cam_pos[0],
-    rot_mat.at<double>(1, 0), rot_mat.at<double>(1, 1), rot_mat.at<double>(1, 2), cam_pos[1],
-    rot_mat.at<double>(2, 0), rot_mat.at<double>(2, 1), rot_mat.at<double>(2, 2), cam_pos[2],
-    0, 0, 0, 1
-  );
+  out.pos = CombRotVec(cam_pos, rot_mat);
   out.cam_mat = cam_mat;
   out.dist_coef = dist_coef;
   return out;
