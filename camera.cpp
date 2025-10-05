@@ -43,6 +43,7 @@ Camera DeserializeCam(std::ifstream& in) {
   cam.cam_mat = DeserializeMat(in);
   cam.dist_coef = DeserializeMat(in);
   cam.pos = DeserializeMat(in);
+  return cam;
 }
 
 Camera ConstructCamera(cv::Vec3d cam_pos, double p, double y, double r, cv::Mat cam_mat, cv::Mat dist_coef) {

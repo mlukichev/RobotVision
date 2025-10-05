@@ -17,9 +17,12 @@ find_package(OpenCV COMPONENTS ${_OpenCV_REQUIRED_COMPONENTS} QUIET CONFIG)
 add_library(robot_vision   
   camera_handling.cpp
   camera.cpp
-  transformations.cpp)
+  transformations.cpp
+  tags.cpp
+)
 
 add_executable(camera_calib  camera_calib.cpp)
+add_executable(test_position_detection test_position_detection.cpp)
 
 # # Link with apriltag library (assuming target is named 'apriltag')
 target_link_libraries(robot_vision PRIVATE
@@ -44,6 +47,16 @@ target_link_libraries(camera_calib PRIVATE
   ${OpenCV_LIBRARIES}
   absl::flags
   absl::flags_parse
+  absl::log
+
+  robot_vision
+)
+
+target_link_libraries(test_position_detection PRIVATE
+  apriltag
+  ${OpenCV_LIBRARIES}
+  # absl::flags
+  # absl::flags_parse
   absl::log
 
   robot_vision

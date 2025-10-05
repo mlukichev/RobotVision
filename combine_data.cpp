@@ -1,6 +1,4 @@
 #include <opencv2/opencv.hpp>
-
-#include "Camera.h"
 #include "camera_handling.h"
 
 double GetDif(cv::Mat a, cv::Mat b) {
@@ -10,9 +8,6 @@ double GetDif(cv::Mat a, cv::Mat b) {
   return sqrt(dif1*dif1+dif2*dif2+dif3*dif3);
 }
 
-
-// Define completely when you convince
-// Nathan to use USB rather than ethernet
 cv::Mat RobotPosition(const std::vector<cv::Mat>& solutions, double tol) {
 
 }

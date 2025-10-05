@@ -4,15 +4,14 @@
 #include <opencv2/opencv.hpp>
 #include <optional>
 #include "camera.h"
-#include "tag36h11.h"
+#include "apriltag.h"
+#include "tags.h"
 
 namespace robot_vision {
 
-// Finds the two transformatoin matricies to convert from tag coordinate space to camera coordinate space
-std::optional<std::pair<cv::Mat, cv::Mat>> TransformTagToCam(const robot_vision::Camera& cam, int tag, const std::vector<cv::Point2i>& image);
+std::vector<std::pair<int, std::vector<cv::Point2i>>> GetImage(const Camera& cam, cv::VideoCapture cap, apriltag_detector_t* td);
 
-// Gets the 2 possible transformation matricies from World coordinate space to Robot coordinate space
-std::optional<std::pair<cv::Mat, cv::Mat>> GetRobotTransform(const robot_vision::Camera& cam, int tag, const std::vector<cv::Point2i>& image);
+std::optional<std::pair<cv::Mat, cv::Mat>> GetRobotPosition(const Camera& cam, const Tags& tags, int tag, const std::vector<cv::Point2i>& image, double apriltag_size);
 
 }  // namespace robot_vision
 
