@@ -9,9 +9,11 @@
 
 namespace robot_vision {
 
-std::vector<std::pair<int, std::vector<cv::Point2i>>> GetImage(const Camera& cam, cv::VideoCapture cap, apriltag_detector_t* td);
+std::vector<std::pair<int, std::vector<cv::Point2d>>> GetImage(const Camera& cam, const cv::Mat& frame, apriltag_detector_t* td);
 
-std::optional<std::pair<cv::Mat, cv::Mat>> GetRobotPosition(const Camera& cam, const Tags& tags, int tag, const std::vector<cv::Point2i>& image, double apriltag_size);
+std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraPosition(const Camera& cam, const Tags& tags, int tag, const std::vector<cv::Point2d>& image, double apriltag_size);
+
+std::optional<std::pair<cv::Mat, cv::Mat>> GetRobotPosition(const Camera& cam, const Tags& tags, int tag, const std::vector<cv::Point2d>& image, double apriltag_size);
 
 }  // namespace robot_vision
 

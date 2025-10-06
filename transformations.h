@@ -29,6 +29,8 @@ cv::Mat Rotation(const cv::Mat& mat, const cv::Mat& rotation);
 
 cv::Mat CombineTransform(const cv::Mat& mat1, const cv::Mat& mat2);
 
+cv::Mat Inverse(const cv::Mat& mat);
+
 }  // namespace robot_vision
 
 #endif
