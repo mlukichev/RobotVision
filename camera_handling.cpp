@@ -155,4 +155,3 @@ std::vector<std::pair<int, std::vector<cv::Point2d>>> GetImage(const Camera& cam
 }
 
 }  // namespace robot_vision
-
