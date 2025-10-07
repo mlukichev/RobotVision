@@ -16,7 +16,7 @@ namespace {
 
 using robot_vision::Camera;
 using robot_vision::Tags;
-using robot_vision::RobotInTagCoords;
+using robot_vision::RobotInWorldCoords;
 using robot_vision::GetImage;
 
 constexpr char famname[] = "tag36h11";
@@ -67,7 +67,7 @@ void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
     // LOG(INFO) << "Detection Set " << cnt << " out.size=" << out.size();
     cnt++;
     for (int i=0; i<out.size(); ++i) {
-      std::optional<std::pair<cv::Mat, cv::Mat>> pos = RobotInTagCoords(cam, out[i].second, /*82.55*/64.29);
+      std::optional<std::pair<cv::Mat, cv::Mat>> pos = RobotInWorldCoords(cam, tags, out[i].first, out[i].second, /*82.55*/64.29);
       if (!pos.has_value()) {
         LOG(INFO) << "No Tags Found In Detection " << i << ".";
         continue;

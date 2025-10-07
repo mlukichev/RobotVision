@@ -141,6 +141,14 @@ std::optional<std::pair<cv::Mat, cv::Mat>> RobotInTagCoords(const Camera& cam, c
   return std::optional(std::pair(rob_in_cam*cam_in_tag->first, rob_in_cam*cam_in_tag->second));
 }
 
+std::optional<std::pair<cv::Mat, cv::Mat>> RobotInWorldCoords(const Camera& cam, Tags tags, int tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
+  std::optional<std::pair<cv::Mat, cv::Mat>> rob_in_wor = RobotInTagCoords(cam, image, apriltag_size);
+  if (!rob_in_wor.has_value()) {
+    return std::nullopt;
+  }
+  return std::optional(std::pair(rob_in_wor->first*tags.GetTagByID(tag), rob_in_wor->second*tags.GetTagByID(tag)));
+}
+
 std::vector<std::pair<int, std::vector<cv::Point2d>>> GetImage(const Camera& cam, const cv::Mat& frame, apriltag_detector_t* td) {
   errno = 0;
   std::vector<std::pair<int, std::vector<cv::Point2d>>> images;
@@ -150,10 +158,10 @@ std::vector<std::pair<int, std::vector<cv::Point2d>>> GetImage(const Camera& cam
   zarray_t *detections = apriltag_detector_detect(td, &im);
 
   //PCHECK(errno == 0) << "Unable to create " << td->nthreads << " threads requested.";
-   if (errno == EAGAIN) {
-            printf("Unable to create the %d threads requested.\n",td->nthreads);
-            exit(-1);
-        }
+  if (errno == EAGAIN) {
+    printf("Unable to create the %d threads requested.\n",td->nthreads);
+    exit(-1);
+  }
         
   for (int i=0; i<detections->size; ++i) {
     apriltag_detection_t *det;
