@@ -15,6 +15,8 @@ std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraInTagCoords(const Camera& ca
 
 std::optional<std::pair<cv::Mat, cv::Mat>> GetRobotPosition(const Camera& cam, const Tags& tags, int tag, const std::vector<cv::Point2d>& image, double apriltag_size);
 
+std::optional<std::pair<cv::Mat, cv::Mat>> RobotInTagCoords(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size);
+
 }  // namespace robot_vision
 
 #endif  // CAMERA_HANDLING_H

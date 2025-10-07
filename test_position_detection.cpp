@@ -16,7 +16,7 @@ namespace {
 
 using robot_vision::Camera;
 using robot_vision::Tags;
-using robot_vision::GetRobotPosition;
+using robot_vision::RobotInTagCoords;
 using robot_vision::GetImage;
 
 constexpr char famname[] = "tag36h11";
@@ -65,15 +65,15 @@ void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
     }
     cv::imshow("Apriltag Detection", frame);
     // LOG(INFO) << "Detection Set " << cnt << " out.size=" << out.size();
-    cnt ++;
+    cnt++;
     for (int i=0; i<out.size(); ++i) {
-      std::optional<std::pair<cv::Mat, cv::Mat>> pos = GetCameraPosition(cam, tags, out[i].first, out[i].second, /*82.55*/64.29);
+      std::optional<std::pair<cv::Mat, cv::Mat>> pos = RobotInTagCoords(cam, out[i].second, /*82.55*/64.29);
       if (!pos.has_value()) {
         LOG(INFO) << "No Tags Found In Detection " << i << ".";
         continue;
       }
-      LOG(INFO) << "Solution 1:\n " << pos->first;
-      LOG(INFO) << "Solution 2:\n" << pos->second;
+      LOG(INFO) << "Tag " << out[i].first << " | Solution 1:\n " << pos->first;
+      LOG(INFO) << "Tag " << out[i].first << " | Solution 2:\n" << pos->second;
     }
     cv::waitKey(100);
   }

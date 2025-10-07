@@ -124,9 +124,9 @@ std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraInTagCoords(const Camera& ca
 cv::Mat GetRobotInCameraCoords(const Camera& cam) {
   cv::Mat inv = Inverse(cam.pos);
   cv::Mat adjusted = (cv::Mat_<double>(4, 4) << 
-    inv.at<double>(2, 0), inv.at<double>(2, 1), inv.at<double>(2, 2), inv.at<double>(2, 3),
-    inv.at<double>(0, 0), inv.at<double>(0, 1), inv.at<double>(0, 2), inv.at<double>(0, 3),
-    -inv.at<double>(1, 0), -inv.at<double>(1, 1), -inv.at<double>(1, 2), -inv.at<double>(1, 3),
+    -inv.at<double>(2, 0), -inv.at<double>(2, 1), -inv.at<double>(2, 2), -inv.at<double>(2, 3),
+    -inv.at<double>(0, 0), -inv.at<double>(0, 1), -inv.at<double>(0, 2), -inv.at<double>(0, 3),
+    inv.at<double>(1, 0), inv.at<double>(1, 1), inv.at<double>(1, 2), inv.at<double>(1, 3),
     0, 0, 0, 1
   );
   return adjusted;
@@ -154,11 +154,10 @@ std::vector<std::pair<int, std::vector<cv::Point2d>>> GetImage(const Camera& cam
             printf("Unable to create the %d threads requested.\n",td->nthreads);
             exit(-1);
         }
-
-
+        
   for (int i=0; i<detections->size; ++i) {
     apriltag_detection_t *det;
-    zarray_get(detections, 0, &det);
+    zarray_get(detections, i, &det);
     std::vector<cv::Point2d> image = {
       cv::Point2d(det->p[0][0], det->p[0][1]),
       cv::Point2d(det->p[1][0], det->p[1][1]),

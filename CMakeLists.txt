@@ -23,6 +23,7 @@ add_library(robot_vision
 
 add_executable(camera_calib  camera_calib.cpp)
 add_executable(test_position_detection test_position_detection.cpp)
+add_executable(generate_transform_matrix generate_transform_matrix.cpp)
 
 # # Link with apriltag library (assuming target is named 'apriltag')
 target_link_libraries(robot_vision PRIVATE
@@ -61,6 +62,14 @@ target_link_libraries(test_position_detection PRIVATE
 
   robot_vision
 )
+
+target_link_libraries(generate_transform_matrix PRIVATE
+  ${OpenCV_LIBRARIES}
+  absl::log
+
+  robot_vision
+)
+
 
 # target_link_libraries(camera_handling PRIVATE
 #   ${OpenCV_LIBRARIES}
