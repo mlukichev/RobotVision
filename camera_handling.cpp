@@ -105,7 +105,7 @@ std::optional<std::pair<cv::Mat, cv::Mat>> GetRobotPosition(const Camera& cam, c
 }
 
 // Returns 4D transformation: Camera -> Tag coord
-std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraInTagCoords(const Camera& cam, int tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
+std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraInTagCoords(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
   // Transofrmation: Tag -> Camera coord
   std::optional<std::pair<cv::Mat, cv::Mat>> tag_to_cam = TransformTagToCam(cam, image, apriltag_size);
   if (!tag_to_cam.has_value()) {
@@ -117,8 +117,28 @@ std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraInTagCoords(const Camera& ca
   cv::Mat inv_tag_to_cam2 = Inverse(tag_to_cam2);
   return std::pair{
     inv_tag_to_cam1, 
-    inv_tag_to_cam2
+    inv_tag_to_cam2/*  */
   };
+}
+
+cv::Mat GetRobotInCameraCoords(const Camera& cam) {
+  cv::Mat inv = Inverse(cam.pos);
+  cv::Mat adjusted = (cv::Mat_<double>(4, 4) << 
+    inv.at<double>(2, 0), inv.at<double>(2, 1), inv.at<double>(2, 2), inv.at<double>(2, 3),
+    inv.at<double>(0, 0), inv.at<double>(0, 1), inv.at<double>(0, 2), inv.at<double>(0, 3),
+    -inv.at<double>(1, 0), -inv.at<double>(1, 1), -inv.at<double>(1, 2), -inv.at<double>(1, 3),
+    0, 0, 0, 1
+  );
+  return adjusted;
+}
+
+std::optional<std::pair<cv::Mat, cv::Mat>> RobotInTagCoords(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
+  std::optional<std::pair<cv::Mat, cv::Mat>> cam_in_tag = GetCameraInTagCoords(cam, image, apriltag_size);
+  if (!cam_in_tag.has_value()) {
+    return std::nullopt;
+  }
+  cv::Mat rob_in_cam = GetRobotInCameraCoords(cam);
+  return std::optional(std::pair(rob_in_cam*cam_in_tag->first, rob_in_cam*cam_in_tag->second));
 }
 
 std::vector<std::pair<int, std::vector<cv::Point2d>>> GetImage(const Camera& cam, const cv::Mat& frame, apriltag_detector_t* td) {

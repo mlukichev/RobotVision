@@ -93,7 +93,7 @@ cv::Mat Rotation(const cv::Mat& mat, const cv::Mat& rotation) {
 }
 
 cv::Mat CombineTransform(const cv::Mat& mat1, const cv::Mat& mat2) {
-  return AddTransform(Translation(mat1, MatToVec(mat2)), Rotation(mat1, MatToRot(mat2)));
+  return CombRotVec(mat1*MatToVec(mat2), MatToRot(mat1)*MatToRot(mat2));
 }
 
 cv::Mat CombineRotation(const std::vector<cv::Mat>& mats) {
@@ -128,9 +128,6 @@ cv::Mat CombineRotation(const std::vector<cv::Mat>& mats) {
 }
 
 cv::Mat Inverse(const cv::Mat& mat) {
-  // cv::Mat inv;
-  // cv::invert(MatToRot(mat), inv);
-  // return CombRotVec(-MatToVec(mat), inv);
   cv::Mat inv;
   cv::invert(mat, inv);
   return inv;
