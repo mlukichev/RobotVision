@@ -133,4 +133,8 @@ cv::Mat Inverse(const cv::Mat& mat) {
   return inv;
 }
 
+cv::Mat CheckOrtho(const cv::Mat& mat) {
+  return mat * mat.t();
+}
+
 }  // namespace robot_vision

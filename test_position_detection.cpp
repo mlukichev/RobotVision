@@ -6,6 +6,7 @@
 #include <thread>
 
 #include "camera.h"
+#include "transformations.h"
 #include "apriltag.h"
 #include "tag36h11.h"
 #include "camera_handling.h"
@@ -16,8 +17,10 @@ namespace {
 
 using robot_vision::Camera;
 using robot_vision::Tags;
-using robot_vision::RobotInWorldCoords;
+using robot_vision::GetCameraInWorldCoords;
 using robot_vision::GetImage;
+using robot_vision::CheckOrtho;
+using robot_vision::MatToRot;
 
 constexpr char famname[] = "tag36h11";
 
@@ -67,13 +70,18 @@ void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
     // LOG(INFO) << "Detection Set " << cnt << " out.size=" << out.size();
     cnt++;
     for (int i=0; i<out.size(); ++i) {
-      std::optional<std::pair<cv::Mat, cv::Mat>> pos = RobotInWorldCoords(cam, tags, out[i].first, out[i].second, /*82.55*/64.29);
+      // std::optional<std::pair<cv::Mat, cv::Mat>> pos = RobotInWorldCoords(cam, tags, out[i].first, out[i].second, /*82.55*/64.29);
+      auto [tag_id, image_points] = out[i];
+      std::optional<std::pair<cv::Mat, cv::Mat>> pos = GetCameraInWorldCoords(cam, tags, tag_id, image_points, 64.29);
+      //std::optional<std::pair<cv::Mat, cv::Mat>> pos = GetCameraInTagCoords(cam, /*tags, tag_id,*/ image_points, 64.29);
       if (!pos.has_value()) {
         LOG(INFO) << "No Tags Found In Detection " << i << ".";
         continue;
       }
       LOG(INFO) << "Tag " << out[i].first << " | Solution 1:\n " << pos->first;
       LOG(INFO) << "Tag " << out[i].first << " | Solution 2:\n" << pos->second;
+      // LOG(INFO) << "Tag " << out[i].first << " | Check 1:\n " << CheckOrtho(MatToRot(pos->first));
+      // LOG(INFO) << "Tag " << out[i].first << " | Check 2:\n " << CheckOrtho(MatToRot(pos->second));
     }
     cv::waitKey(100);
   }

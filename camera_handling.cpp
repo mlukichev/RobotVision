@@ -47,7 +47,7 @@ std::optional<std::pair<cv::Mat, cv::Mat>> TransformTagToCam(const Camera& cam, 
     cv::Rodrigues(rvec[0], rot1);
     cv::Rodrigues(rvec[1], rot2);
 
-    // LOG(INFO) << "tvec[0]:\n" << tvec[0] << "\n" << sqrt(tvec[0].at<double>(0,0)*tvec[0].at<double>(0,0)+tvec[0].at<double>(1,0)*tvec[0].at<double>(1,0)+tvec[0].at<double>(2,0)*tvec[0].at<double>(2,0)) << " mm";
+    // LOG(INFO) << "tvec[0]:\n" << tvec[0]; // << "\n" << sqrt(tvec[0].at<double>(0,0)*tvec[0].at<double>(0,0)+tvec[0].at<double>(1,0)*tvec[0].at<double>(1,0)+tvec[0].at<double>(2,0)*tvec[0].at<double>(2,0)) << " mm";
     // LOG(INFO) << "tvec[1]:\n" << tvec[1];
     // LOG(INFO) << "Tag to Cam 1\n" << CombRotVec(tvec[0], rot1*MatToRot(cam.pos));
     // LOG(INFO) << "Tag to Cam 2\n" << CombRotVec(tvec[1], rot2*MatToRot(cam.pos));
@@ -147,6 +147,20 @@ std::optional<std::pair<cv::Mat, cv::Mat>> RobotInWorldCoords(const Camera& cam,
     return std::nullopt;
   }
   return std::optional(std::pair(rob_in_wor->first*tags.GetTagByID(tag), rob_in_wor->second*tags.GetTagByID(tag)));
+}
+
+std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraInWorldCoords(const Camera& cam, Tags tags, int tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
+  LOG(INFO) << "GetCameraInTagCoords=" << tag;
+  std::optional<std::pair<cv::Mat, cv::Mat>> camera_in_tag = GetCameraInTagCoords(cam, image, apriltag_size);
+  if (!camera_in_tag.has_value()) {
+    return std::nullopt;
+  }
+  return std::optional(
+    std::pair{
+      tags.GetTagByID(tag) * camera_in_tag->first,
+      tags.GetTagByID(tag) * camera_in_tag->second
+    }
+  );
 }
 
 std::vector<std::pair<int, std::vector<cv::Point2d>>> GetImage(const Camera& cam, const cv::Mat& frame, apriltag_detector_t* td) {

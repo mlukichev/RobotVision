@@ -31,6 +31,8 @@ cv::Mat CombineTransform(const cv::Mat& mat1, const cv::Mat& mat2);
 
 cv::Mat Inverse(const cv::Mat& mat);
 
+cv::Mat CheckOrtho(const cv::Mat& mat);
+
 }  // namespace robot_vision
 
 #endif

@@ -8,19 +8,30 @@
 
 namespace robot_vision {
 
+namespace {
+
+const cv::Mat rotate_axes = (cv::Mat_<double>(4, 4) <<
+  0, 0, -1, 0,
+  -1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 0, 1
+);
+
+}  // namespace
+
 Tags::Tags() {
   tags_[0] = (cv::Mat_<double>(4, 4) << 
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
     0, 0, 0, 1
-  );
+  ) * rotate_axes;
   tags_[1] = (cv::Mat_<double>(4, 4) << 
-    0.7071067811847432, 0, 0.7071067811883519, 88.9,
-    0, 1, 0, 1158.875,
-    -0.7071067811883519, 0, 0.7071067811847432, -45.72,
+    1, 0, 0, 0,
+    0, 1, 0, 508,
+    0, 0, 1, 0,
     0, 0, 0, 1
-  );
+  ) * rotate_axes;
 }
 
 bool Tags::TagExists(int tag) const {
