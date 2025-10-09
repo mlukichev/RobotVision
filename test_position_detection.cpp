@@ -21,6 +21,9 @@ using robot_vision::GetCameraInWorldCoords;
 using robot_vision::GetImage;
 using robot_vision::CheckOrtho;
 using robot_vision::MatToRot;
+using robot_vision::MatToVec3d;
+using robot_vision::TransformTagToCam;
+using robot_vision::GetCameraInTagCoords;
 
 constexpr char famname[] = "tag36h11";
 
@@ -58,31 +61,41 @@ void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
     cap.read(frame);
     cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
     std::vector<std::pair<int, std::vector<cv::Point2d>>> out = GetImage(cam, gray, td);
-    for (int i=0; i<out.size(); ++i) {
-      cv::line(frame, out[i].second[0], out[i].second[1], cv::Scalar(255, 0, 0), 2);
-      cv::line(frame, out[i].second[1], out[i].second[2], cv::Scalar(255, 0, 0), 2);
-      cv::line(frame, out[i].second[2], out[i].second[3], cv::Scalar(255, 0, 0), 2);
-      cv::line(frame, out[i].second[3], out[i].second[0], cv::Scalar(255, 0, 0), 2);
-      cv::line(frame, cv::Point2i(0, 0), cv::Point2i(frame.cols-1, frame.rows-1), cv::Scalar(0, 255, 0), 2);
-      cv::line(frame, cv::Point2i(frame.cols-1, 0), cv::Point2i(0, frame.rows-1), cv::Scalar(0, 255, 0), 2);
-    }
-    cv::imshow("Apriltag Detection", frame);
+    
+    cv::line(frame, cv::Point2i(0, 0), cv::Point2i(frame.cols-1, frame.rows-1), cv::Scalar(0, 255, 0), 2);
+    cv::line(frame, cv::Point2i(frame.cols-1, 0), cv::Point2i(0, frame.rows-1), cv::Scalar(0, 255, 0), 2);
+
     // LOG(INFO) << "Detection Set " << cnt << " out.size=" << out.size();
     cnt++;
     for (int i=0; i<out.size(); ++i) {
       // std::optional<std::pair<cv::Mat, cv::Mat>> pos = RobotInWorldCoords(cam, tags, out[i].first, out[i].second, /*82.55*/64.29);
       auto [tag_id, image_points] = out[i];
-      std::optional<std::pair<cv::Mat, cv::Mat>> pos = GetCameraInWorldCoords(cam, tags, tag_id, image_points, 64.29);
-      //std::optional<std::pair<cv::Mat, cv::Mat>> pos = GetCameraInTagCoords(cam, /*tags, tag_id,*/ image_points, 64.29);
+      //std::optional<std::pair<cv::Mat, cv::Mat>> pos = GetCameraInWorldCoords(cam, tags, tag_id, image_points, 64.29);
+      std::optional<std::pair<cv::Mat, cv::Mat>> pos = TransformTagToCam(cam, /*tags, tag_id,*/ image_points, 64.29);
+      std::optional<std::pair<cv::Mat, cv::Mat>> pos1 = GetCameraInWorldCoords(cam, tags, tag_id, image_points, 64.29);
       if (!pos.has_value()) {
         LOG(INFO) << "No Tags Found In Detection " << i << ".";
         continue;
       }
-      LOG(INFO) << "Tag " << out[i].first << " | Solution 1:\n " << pos->first;
-      LOG(INFO) << "Tag " << out[i].first << " | Solution 2:\n" << pos->second;
+      LOG(INFO) << "Tag " << out[i].first << " | Solution 1:\n " << std::fixed << std::setprecision(2) << pos1->first;
+      LOG(INFO) << "Tag " << out[i].first << " | Solution 2:\n" << std::fixed << std::setprecision(2) << pos1->second;
       // LOG(INFO) << "Tag " << out[i].first << " | Check 1:\n " << CheckOrtho(MatToRot(pos->first));
       // LOG(INFO) << "Tag " << out[i].first << " | Check 2:\n " << CheckOrtho(MatToRot(pos->second));
+
+      cv::line(frame, out[i].second[0], out[i].second[1], cv::Scalar(255, 0, 0), 2);
+      cv::line(frame, out[i].second[1], out[i].second[2], cv::Scalar(255, 0, 0), 2);
+      cv::line(frame, out[i].second[2], out[i].second[3], cv::Scalar(255, 0, 0), 2);
+      cv::line(frame, out[i].second[3], out[i].second[0], cv::Scalar(255, 0, 0), 2);
+      
+      cv::Mat rvec;
+      cv::Rodrigues(MatToRot(pos->first), rvec);
+      cv::drawFrameAxes(frame, cam.cam_mat, cam.dist_coef, rvec, MatToVec3d(pos->first), 30, 2);
     }
+
+    
+
+    cv::imshow("Position Detection", frame);
+
     cv::waitKey(100);
   }
 

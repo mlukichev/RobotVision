@@ -21,6 +21,8 @@ std::optional<std::pair<cv::Mat, cv::Mat>> RobotInWorldCoords(const Camera& cam,
 
 std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraInWorldCoords(const Camera& cam, Tags tags, int tag, const std::vector<cv::Point2d>& image, double apriltag_size);
 
+std::optional<std::pair<cv::Mat, cv::Mat>> TransformTagToCam(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size);
+
 }  // namespace robot_vision
 
 #endif  // CAMERA_HANDLING_H
