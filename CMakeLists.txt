@@ -19,6 +19,7 @@ add_library(robot_vision
   camera.cpp
   transformations.cpp
   tags.cpp
+  april_tag_detector.cpp
 )
 
 add_executable(camera_calib  camera_calib.cpp)

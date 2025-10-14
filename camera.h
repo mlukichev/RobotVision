@@ -13,7 +13,7 @@ cv::Mat DeserializeMat(std::istream& in);
 struct Camera {
   cv::Mat cam_mat;
   cv::Mat dist_coef;
-  cv::Mat pos;
+  Transformation pos;
 };
 
 void SerializeCam(const Camera& cam, std::ofstream& out);

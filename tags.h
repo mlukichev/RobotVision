@@ -5,16 +5,20 @@
 #include <optional>
 #include <unordered_map>
 
+#include "transformations.h"
+
 namespace robot_vision {
+
+using TagId = int;
 
 class Tags {
  public:
   Tags();
-  bool TagExists(int tag) const;
-  cv::Mat GetTagByID(int tag) const;
+  bool TagExists(TagId tag) const;
+  Transformation GetTagByID(TagId tag) const;
    
  private:
-  std::unordered_map<int, cv::Mat> tags_;
+  std::unordered_map<int, Transformation> tags_;
 };
 
 }

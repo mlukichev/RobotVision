@@ -5,37 +5,49 @@
 
 namespace robot_vision {
 
-cv::Mat VecToMat(const cv::Vec3d& vec);
+class Transformation {
+ public:
+  Transformation(const cv::Mat& mat): mat_{mat} {}
 
-cv::Mat VecToMat(const cv::Mat& vec);
+  Transformation(cv::Mat&& mat): mat_{std::move(mat)} {}
 
-cv::Vec3d MatToVec3d(const cv::Mat& mat);
+  Transformation(const cv::Mat&, const cv::Mat&);
 
-cv::Mat MatToVec(const cv::Mat& mat);
+  Transformation(const cv::Vec3d&, const cv::Mat&);
 
-cv::Mat MatToRot(const cv::Mat& mat);
+  Transformation() = default;
 
-cv::Mat RotToMat(const cv::Mat& rot);
+  cv::Mat self();
 
-cv::Mat CombRotVec(const cv::Mat& vec, const cv::Mat& rot);
+  cv::Vec3d ToVec3d();
 
-cv::Mat CombRotVec(const cv::Vec3d& vec, const cv::Mat& rot);
+  cv::Mat ToRot();
 
-cv::Mat Translation(const cv::Mat& mat, const cv::Mat& translation);
+  cv::Mat ToVec();
 
-cv::Mat Translation(const cv::Mat& mat, const cv::Vec3d& translation);
+  Transformation Inverse();
 
-cv::Mat Rotation(const cv::Mat& mat, const cv::Mat& rotation);
+  Transformation operator*(const Transformation& other) const;
 
-cv::Mat CombineTransform(const cv::Mat& mat1, const cv::Mat& mat2);
+  Transformation operator/(const Transformation& other) const;
 
-cv::Mat Inverse(const cv::Mat& mat);
+  Transformation operator*(double other) const;
 
-cv::Mat CheckOrtho(const cv::Mat& mat);
+  Transformation operator/(double other) const;
+
+  Transformation operator+(const Transformation& other) const;
+
+  Transformation operator-(const Transformation& other) const;
+
+  
+
+ private:
+  cv::Mat mat_;
+};
 
 double GetSquareDist(const cv::Vec3d& a, const cv::Vec3d& b);
 
-cv::Mat CombineRotation(cv::Mat mat);
+cv::Mat CombineRotation(Transformation mat);
 
 }  // namespace robot_vision
 

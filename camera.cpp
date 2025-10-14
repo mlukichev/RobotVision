@@ -32,12 +32,6 @@ cv::Mat DeserializeMat(std::ifstream& in) {
   return out;
 }
 
-void SerializeCam(const Camera& cam, std::ofstream& out) {
-  SerializeMat(out, cam.cam_mat);
-  SerializeMat(out, cam.dist_coef);
-  SerializeMat(out, cam.pos);
-}
-
 Camera DeserializeCam(std::ifstream& in) {
   Camera cam;
   cam.cam_mat = DeserializeMat(in);
@@ -64,7 +58,7 @@ Camera ConstructCamera(cv::Vec3d cam_pos, double p, double y, double r, cv::Mat 
     0, std::sin(r), std::cos(r)
   );
   cv::Mat rot_mat = pitch * yaw * roll;
-  out.pos = CombRotVec(cam_pos, rot_mat);
+  out.pos = Transformation(cam_pos, rot_mat);
   out.cam_mat = cam_mat;
   out.dist_coef = dist_coef;
   return out;
