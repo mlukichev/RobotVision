@@ -153,7 +153,6 @@ std::optional<std::pair<cv::Mat, cv::Mat>> RobotInWorldCoords(const Camera& cam,
 }
 
 std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraInWorldCoords(const Camera& cam, Tags tags, int tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
-  LOG(INFO) << "GetCameraInTagCoords=" << tag;
   std::optional<std::pair<cv::Mat, cv::Mat>> camera_in_tag = GetCameraInTagCoords(cam, image, apriltag_size);
   if (!camera_in_tag.has_value()) {
     return std::nullopt;

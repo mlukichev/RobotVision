@@ -96,26 +96,14 @@ cv::Mat CombineTransform(const cv::Mat& mat1, const cv::Mat& mat2) {
   return CombRotVec(mat1*MatToVec(mat2), MatToRot(mat1)*MatToRot(mat2));
 }
 
-cv::Mat CombineRotation(const std::vector<cv::Mat>& mats) {
-  cv::Mat M = (cv::Mat_<double>(3, 3) <<
-    0, 0, 0,
-    0, 0, 0,
-    0, 0, 0
-  );
-
-  for (cv::Mat e : mats) {
-    M += MatToRot(e);
-  }
-  M /= mats.size();
-  
-  cv::SVD svd(M);
-  cv::Mat U = svd.u;
-  cv::Mat Vt = svd.vt;
+cv::Mat CombineRotation(cv::Mat mat) {
+  cv::Mat U, W, Vt;
+  cv::SVD::compute(mat, W, U, Vt);
 
   double det_U = cv::determinant(U);
   double det_Vt = cv::determinant(Vt);
 
-  if (det_U*det_Vt == 1) {
+  if (abs(det_U*det_Vt - 1) <= 0.01) {
     return U*Vt;
   } else {
     cv::Mat flip = (cv::Mat_<double>(3, 3) <<
@@ -135,6 +123,10 @@ cv::Mat Inverse(const cv::Mat& mat) {
 
 cv::Mat CheckOrtho(const cv::Mat& mat) {
   return mat * mat.t();
+}
+
+double GetSquareDist(const cv::Vec3d& a, const cv::Vec3d& b) {
+  return (a[0]-b[0])*(a[0]-b[0]) + (a[1]-b[1])*(a[1]-b[1]) + (a[2]-b[2])*(a[2]-b[2]);
 }
 
 }  // namespace robot_vision

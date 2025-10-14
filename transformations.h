@@ -33,6 +33,10 @@ cv::Mat Inverse(const cv::Mat& mat);
 
 cv::Mat CheckOrtho(const cv::Mat& mat);
 
+double GetSquareDist(const cv::Vec3d& a, const cv::Vec3d& b);
+
+cv::Mat CombineRotation(cv::Mat mat);
+
 }  // namespace robot_vision
 
 #endif
