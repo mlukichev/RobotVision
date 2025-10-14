@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(robot_vision)
 
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable building protobuf tests" FORCE)
+
 # find_package(Protobuf REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -9,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add third-party library
 add_subdirectory(third_party/apriltag)
 add_subdirectory(third_party/abseil-cpp)
-# add_subdirectory(third_party/grpc)
+add_subdirectory(third_party/protobuf)
 
 set(_OpenCV_REQUIRED_COMPONENTS core imgproc videoio highgui calib3d)
 find_package(OpenCV COMPONENTS ${_OpenCV_REQUIRED_COMPONENTS} QUIET CONFIG)
@@ -19,7 +21,7 @@ add_library(robot_vision
   camera.cpp
   transformations.cpp
   tags.cpp
-  april_tag_detector.cpp
+  apriltag_detector.cpp
 )
 
 add_executable(camera_calib  camera_calib.cpp)

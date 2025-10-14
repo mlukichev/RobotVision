@@ -14,7 +14,7 @@ struct TagPoints {
 
 class TagDetector {
  public:
-  virtual ~TagDetector();
+  virtual ~TagDetector() {}
   virtual std::vector<TagPoints> Detect(const cv::Mat& frame) = 0;
 };
 

@@ -2,16 +2,43 @@ syntax = "proto3";
 
 package data_handiling;
 
-message RobotPoistionResponse {
-  int32 rows = 1;
-  int32 cols = 2;
-  bytes data = 3;
+message CameraInTagCoords {
+  int32 tag_id = 1;
+  repeated double mat = 2; // 4x4 matrix, [j*cols+i]
 }
 
-message RobotPositionRequest {
-
+message CameraPosition {
+  int32 camera_id = 1;
+  repeated CameraInTagCoords camera_in_tag_coords = 2; // tag_id can be non-unique
 }
 
-service GetPosition {
-  rpc GetRobotPositions(RobotPoistionRequest) returns(RobotPositionRespnse);
+message Telemetry {
+  // to do...
+}
+
+message ReportCameraPositions {
+  repeated CameraPosition camera_position = 1;
+  repeated Telemetry telemetry = 2;
+}
+
+message ClientRequest {
+  oneof msg {
+    ReportCameraPositions report_camera_positions = 1;
+    // future client-to-server messages
+  }
+}
+
+message SelfDestruct {
+  int32 delay_seconds = 1;
+}
+
+message ServerRequest {
+  oneof msg {
+    SelfDestruct self_destruct = 1;
+    // future server-to-client messages
+  }
+}
+
+service VisionSystem {
+  rpc OpenControlStream(stream ClientRequest) returns (stream ServerRequest);
 }

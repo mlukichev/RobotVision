@@ -11,7 +11,7 @@ class ApriltagDetector: public TagDetector {
  public:
   ApriltagDetector() = default;
   ApriltagDetector(double, int, int, bool, bool);
-  ~ApriltagDetector();
+  ~ApriltagDetector() override;
 
   std::vector<TagPoints> Detect(const cv::Mat& frame) override;
 

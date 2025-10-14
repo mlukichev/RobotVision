@@ -39,8 +39,6 @@ class Transformation {
 
   Transformation operator-(const Transformation& other) const;
 
-  
-
  private:
   cv::Mat mat_;
 };

@@ -22,7 +22,7 @@ std::vector<std::string> send = {
 
 class RobotPositionClient {
   public:
-    std::optional<cv::Mat> DeserializeMat(data_handling::RobotPositionResponse res) {
+    std::optional<cv::Mat> DeserializeMat(data_handling::CameraPositionResponse res) {
       if (res.data().empty()) {
         return std::nullopt;
       }
