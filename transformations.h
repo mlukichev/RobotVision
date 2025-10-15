@@ -15,7 +15,7 @@ class Transformation {
 
   Transformation(const cv::Vec3d&, const cv::Mat&);
 
-  Transformation() = default;
+  Transformation();
 
   cv::Mat self();
 

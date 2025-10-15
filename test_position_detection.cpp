@@ -26,8 +26,9 @@ using robot_vision::TagPoints;
 using robot_vision::GetCameraInTagCoords;
 using robot_vision::GetSquareDist;
 using robot_vision::CombineRotation;
+using robot_vision::GetCameraInWorldCoords;
 
-std::optional<Transformation> GetBestFit(const std::vector<cv::Mat>& mats, double tolerance) {
+std::optional<Transformation> GetBestFit(const std::vector<Transformation>& mats, double tolerance) {
   if(mats.size() < 2) {
     LOG(INFO) << "Not enough solutions provided.";
     return std::nullopt;
@@ -57,12 +58,36 @@ std::optional<Transformation> GetBestFit(const std::vector<cv::Mat>& mats, doubl
     Transformation mid = std::reduce(sol1.begin(), sol1.end(), a)/((double)sol1.size());
     Transformation rots = CombineRotation(mid.ToRot());
     Transformation pos = mid.ToVec();
-    return std::optional(rots+pos);
+    Transformation frots = Transformation((cv::Mat_<double>(4, 4) <<
+      rots.self().at<double>(0, 0), rots.self().at<double>(0, 1), rots.self().at<double>(0, 2), 0,
+      rots.self().at<double>(1, 0), rots.self().at<double>(1, 1), rots.self().at<double>(1, 2), 0,
+      rots.self().at<double>(2, 0), rots.self().at<double>(2, 1), rots.self().at<double>(2, 2), 0,
+      0, 0, 0, 1
+    ));
+    Transformation fpos = Transformation((cv::Mat_<double>(4, 4) <<
+      0, 0, 0, pos.self().at<double>(0, 0),
+      0, 0, 0, pos.self().at<double>(1, 0),
+      0, 0, 0, pos.self().at<double>(2, 0),
+      0, 0, 0, 1
+    ));
+    return std::optional(frots+fpos);
   } else {
     Transformation mid = std::reduce(sol2.begin(), sol2.end(), a)/((double)sol2.size());
     Transformation rots = CombineRotation(mid.ToRot());
     Transformation pos = mid.ToVec();
-    return std::optional(rots+pos);
+    Transformation frots = Transformation((cv::Mat_<double>(4, 4) <<
+      rots.self().at<double>(0, 0), rots.self().at<double>(0, 1), rots.self().at<double>(0, 2), 0,
+      rots.self().at<double>(1, 0), rots.self().at<double>(1, 1), rots.self().at<double>(1, 2), 0,
+      rots.self().at<double>(2, 0), rots.self().at<double>(2, 1), rots.self().at<double>(2, 2), 0,
+      0, 0, 0, 1
+    ));
+    Transformation fpos = Transformation((cv::Mat_<double>(4, 4) <<
+      0, 0, 0, pos.self().at<double>(0, 0),
+      0, 0, 0, pos.self().at<double>(1, 0),
+      0, 0, 0, pos.self().at<double>(2, 0),
+      0, 0, 0, 1
+    ));
+    return std::optional(frots+fpos);
   }
 }
 
@@ -93,19 +118,22 @@ void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
     meter.start();
     cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
     std::vector<TagPoints> out = detector.Detect(gray);
-    
-    cv::line(frame, cv::Point2i(0, 0), cv::Point2i(frame.cols-1, frame.rows-1), cv::Scalar(0, 255, 0), 2);
-    cv::line(frame, cv::Point2i(frame.cols-1, 0), cv::Point2i(0, frame.rows-1), cv::Scalar(0, 255, 0), 2);
+    meter.stop();
+    LOG(INFO) << "Apriltag Finding: " << meter.getTimeSec() << " sec";
+    meter.reset();
 
-    std::vector<cv::Mat> sols;
+    // cv::line(frame, cv::Point2i(0, 0), cv::Point2i(frame.cols-1, frame.rows-1), cv::Scalar(0, 255, 0), 2);
+    // cv::line(frame, cv::Point2i(frame.cols-1, 0), cv::Point2i(0, frame.rows-1), cv::Scalar(0, 255, 0), 2);
+
+    std::vector<Transformation> sols;
     for (int i=0; i<out.size(); ++i) {
-      std::optional<std::pair<cv::Mat, cv::Mat>> pos1 = GetCameraInTagCoords(cam, /*tags, out[i].id,*/ out[i].points, 64.29);
+      std::optional<std::pair<Transformation, Transformation>> pos1 = GetCameraInWorldCoords(cam, tags, out[i].id, out[i].points, 64.29);
       if (!pos1.has_value()) {
         LOG(INFO) << "No Tags Found In Detection " << i << ".";
         continue;
       }
-      LOG(INFO) << "Tag " << out[i].id << " | Solution 1:\n " << std::fixed << std::setprecision(2) << pos1->first;
-      LOG(INFO) << "Tag " << out[i].id << " | Solution 2:\n" << std::fixed << std::setprecision(2) << pos1->second;
+      LOG(INFO) << "Tag " << out[i].id << " | Solution 1:\n " << std::fixed << std::setprecision(2) << pos1->first.self();
+      LOG(INFO) << "Tag " << out[i].id << " | Solution 2:\n" << std::fixed << std::setprecision(2) << pos1->second.self();
       sols.push_back(pos1->first);
       sols.push_back(pos1->second);
 
@@ -117,13 +145,8 @@ void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
     }
     std::optional<Transformation> best = GetBestFit(sols, 1000);
     if (best.has_value()) {
-      LOG(INFO) << "Best Solution\n" << *best;
+      LOG(INFO) << "Best Solution\n" << (*best).self();
     }
-    meter.stop();
-    LOG(INFO) << "Frame computations: " << meter.getTimeSec() << " sec";
-    meter.reset();
-
-    
 
     cv::imshow("Position Detection", frame);
 

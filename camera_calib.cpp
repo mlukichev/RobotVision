@@ -6,6 +6,7 @@
 #include "absl/flags/parse.h"
 #include "absl/log/log.h"
 #include "camera.h"
+#include "transformations.h"
 
 ABSL_FLAG(int, camera, 0, "Camera ID.");
 ABSL_FLAG(std::string, filename, "camera_calib.out", "File where outputs of calibtation are stored.");
@@ -92,6 +93,6 @@ int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
   Camera cam = CreateCamFromImages(cv::Vec3d(0, 0, 0), 0, 0, 0, 7, 7, 22.7);
   std::ofstream out(absl::GetFlag(FLAGS_filename));
-  SerializeCam(cam, out);
+  //SerializeCam(cam, out);
   return 0;
 }

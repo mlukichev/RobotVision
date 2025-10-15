@@ -9,7 +9,7 @@ namespace robot_vision {
 
 class ApriltagDetector: public TagDetector {
  public:
-  ApriltagDetector() = default;
+  ApriltagDetector();
   ApriltagDetector(double, int, int, bool, bool);
   ~ApriltagDetector() override;
 

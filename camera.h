@@ -4,6 +4,8 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+#include "transformations.h"
+
 namespace robot_vision {
 
 void SerializeMat(std::ofstream& out, const cv::Mat& mat);

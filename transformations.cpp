@@ -90,7 +90,7 @@ Transformation Transformation::Inverse() {
 
 cv::Mat CombineRotation(Transformation mat) {
   cv::Mat U, W, Vt;
-  cv::SVD::compute(mat.self(), W, U, Vt);
+  cv::SVD::compute(mat.ToRot(), W, U, Vt);
 
   double det_U = cv::determinant(U);
   double det_Vt = cv::determinant(Vt);
