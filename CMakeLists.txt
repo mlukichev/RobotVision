@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.16)
 project(robot_vision)
 
-set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable building protobuf tests" FORCE)
-
-# find_package(Protobuf REQUIRED)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(protobuf_BUILD_TESTS OFF CACHE BOOL "Disable building protobuf tests" FORCE)
+set(BUILD_PYTHON_WRAPPER OFF)
+set(protobuf_ABSL_PROVIDER "package" CACHE STRING "" FORCE)
+set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
+set(utf8_range_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
 
 # Add third-party library
 add_subdirectory(third_party/apriltag)
@@ -15,6 +17,16 @@ add_subdirectory(third_party/protobuf)
 
 set(_OpenCV_REQUIRED_COMPONENTS core imgproc videoio highgui calib3d)
 find_package(OpenCV COMPONENTS ${_OpenCV_REQUIRED_COMPONENTS} QUIET CONFIG)
+
+find_package(Protobuf REQUIRED)
+
+add_library(data_handling)
+
+protobuf_generate(
+  TARGET data_handling
+  LANGUAGE cpp
+  PROTOS data_handling.proto
+  OUT_VAR data_handling_protos)
 
 add_library(robot_vision   
   camera_handling.cpp
@@ -27,6 +39,10 @@ add_library(robot_vision
 add_executable(camera_calib  camera_calib.cpp)
 add_executable(test_position_detection test_position_detection.cpp)
 add_executable(generate_transform_matrix generate_transform_matrix.cpp)
+
+target_link_libraries(data_handling PRIVATE
+  protobuf::libprotobuf
+)
 
 # # Link with apriltag library (assuming target is named 'apriltag')
 target_link_libraries(robot_vision PRIVATE
