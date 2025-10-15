@@ -18,7 +18,7 @@ add_subdirectory(third_party/protobuf)
 set(_OpenCV_REQUIRED_COMPONENTS core imgproc videoio highgui calib3d)
 find_package(OpenCV COMPONENTS ${_OpenCV_REQUIRED_COMPONENTS} QUIET CONFIG)
 
-find_package(Protobuf REQUIRED)
+include(${CMAKE_SOURCE_DIR}/third_party/protobuf/cmake/protobuf-generate.cmake)
 
 add_library(data_handling)
 
