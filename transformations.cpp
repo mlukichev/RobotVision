@@ -22,10 +22,6 @@ Transformation::Transformation(const cv::Vec3d& translation, const cv::Mat& rota
   );
 }
 
-Transformation::Transformation() {
-  cv::Mat mat_;
-}
-
 cv::Mat Transformation::self() {
   return mat_;
 }

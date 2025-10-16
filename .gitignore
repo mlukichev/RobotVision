@@ -1,8 +1,9 @@
 .cmake/
+.venv/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
 robot_vision
 CMakeFiles/
-third_party/
+third_party/apriltag/
 build/

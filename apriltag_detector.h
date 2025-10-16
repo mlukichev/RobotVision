@@ -9,8 +9,8 @@ namespace robot_vision {
 
 class ApriltagDetector: public TagDetector {
  public:
-  ApriltagDetector();
-  ApriltagDetector(double, int, int, bool, bool);
+  ApriltagDetector(): ApriltagDetector(2.0, 0, 1, false, true) {}
+  ApriltagDetector(double quad_decimate, int quad_sigma, int nthreads, bool debug, bool refine_edges);
   ~ApriltagDetector() override;
 
   std::vector<TagPoints> Detect(const cv::Mat& frame) override;

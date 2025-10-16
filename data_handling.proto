@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package data_handiling;
+package robot_vision;
 
 message CameraInTagCoords {
   int32 tag_id = 1;

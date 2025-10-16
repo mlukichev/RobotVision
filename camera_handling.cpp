@@ -2,8 +2,8 @@
 #include <utility>
 #include <algorithm>
 #include <optional>
-#include <opencv2/opencv.hpp>
 
+#include "opencv2/opencv.hpp"
 #include "camera.h"
 #include "transformations.h"
 #include "absl/log/check.h"

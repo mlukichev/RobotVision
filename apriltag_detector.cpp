@@ -7,26 +7,6 @@
 
 namespace robot_vision {
 
-ApriltagDetector::ApriltagDetector() {
-  errno = 0;
-
-  tf_ = tag36h11_create();
-  CHECK(tf_ != 0) << "Cannot allocate tag family.";
-
-  td_ = apriltag_detector_create();
-  CHECK(td_ != 0) << "Cannot allocate tag detector.";
-
-  apriltag_detector_add_family(td_, tf_);
-
-  PCHECK(errno == 0) << "Unable to add family to detector.";
-
-  td_->quad_decimate = 2.0;
-  td_->quad_sigma = 0;
-  td_->nthreads = 1;
-  td_->debug = false;
-  td_->refine_edges = true;
-}
-
 ApriltagDetector::ApriltagDetector(double quad_decimate, int quad_sigma, int nthreads, bool debug, bool refine_edges) {
   errno = 0;
 

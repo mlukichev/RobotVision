@@ -1,45 +1,75 @@
 #include <iostream>
-#include <opencv2/opencv.hpp>
 #include <optional>
 #include <memory>
 
-#include "grpcpp/grpcpp.h"
-#include "data_handling_server.grpc.pb.h"
+#include "absl/flags/flag.h"
+#include "absl/log/log.h"
+#include "data_handling.pb.h"
+#include "data_handling.grpc.pb.h"
+#include "grpcpp/server_builder.h"
+#include "vision_system.h"
 
-// Enter port address
-std::string port_address = "";
-std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel(port_address, grpc::InsecureChannelCredentials());
+ABSL_FLAG(std::string, server_address, "0.0.0.0:50001", "Vision system server address");
 
-// Put address of computers with cameras
-std::vector<std::string> recive = {
+namespace robot_vision {
+namespace {
 
+using grpc::Server;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
+using grpc::ServerReaderWriter;
+using grpc::Status;
+
+class VisionSystemImpl: public VisionSystem::Service {
+ public:
+  VisionSystemImpl(VisionSystemCore* vision_system_core): 
+    vision_system_core_{vision_system_core} {}
+
+  virtual Status OpenControlStream(ServerContext* context,
+                                   ServerReaderWriter<ServerRequest, ClientRequest>* stream); 
+ private:
+  VisionSystemCore* vision_system_core_;
 };
 
-// Put address of control computers data need to be sent too
-std::vector<std::string> send = {
-
-};
-
-class RobotPositionClient {
-  public:
-    std::optional<cv::Mat> DeserializeMat(data_handling::CameraPositionResponse res) {
-      if (res.data().empty()) {
-        return std::nullopt;
+Status VisionSystemImpl::OpenControlStream(
+  ServerContext* context,
+  ServerReaderWriter<ServerRequest, ClientRequest>* stream) {
+  ClientRequest req;
+  while (stream->Read(&req)) {
+    switch (req.msg_case()) {
+    case ClientRequest::kReportCameraPositions:
+      for (const CameraPosition& pos : req.report_camera_positions().camera_position()) {
+        absl::Status status = vision_system_core_->ReportCameraPosition(pos);
+        if (!status.ok()) {
+          LOG(WARNING) << "Error processing ReportCameraPosition request: " << status;
+        }
       }
-      int rows = res.rows();
-      int cols = res.cols();
-      cv::Mat out(rows, cols, (void*)res.data().c_str());
-      return out.clone();
+      break;
+    default:
+      LOG(WARNING) << "Dropping unrecognized message: " << req.DebugString();
+      break;
     }
+  }
+  return Status::OK;
+}
 
-    cv::Mat 
+void RunServer(VisionSystemCore* vision_system_core, const std::string& server_address) {
+  VisionSystemImpl service(vision_system_core);
 
-    cv::Mat GetRobotPos() {
-      for (std::string e : ) {
+  ServerBuilder builder;
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.RegisterService(&service);
+  std::unique_ptr<Server> server(builder.BuildAndStart());
 
-      }
-    }
+  LOG(INFO) << "Server listening on " << server_address;
+  server->Wait();
+}
 
-  private:
-    std::unique_ptr<data_handling::RobotPositionRequest::Stub> stub_;
-};
+}  // namespace
+}  // namespace robot_vision
+
+int main() {
+  robot_vision::VisionSystemCore vision_system_core;
+
+  robot_vision::RunServer(&vision_system_core, absl::GetFlag(FLAGS_server_address));
+}
