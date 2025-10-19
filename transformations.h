@@ -15,7 +15,7 @@ class Transformation {
 
   Transformation(const cv::Vec3d&, const cv::Mat&);
 
-  Transformation();
+  Transformation(): mat_{cv::Mat::eye(4, 4, CV_64F)} {}
 
   cv::Mat self();
 

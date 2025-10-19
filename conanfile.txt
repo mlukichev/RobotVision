@@ -9,5 +9,5 @@ protobuf/3.21.12
 grpc/1.50.1
 
 [generators]
-CMakeDeps
 CMakeToolchain
+CMakeDeps

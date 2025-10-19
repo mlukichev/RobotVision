@@ -3,12 +3,13 @@ project(robot_vision)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Loading 3rd party packages
 find_package(absl CONFIG REQUIRED)
 find_package(protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
-find_package(opencv CONFIG REQUIRED)
+find_package(OpenCV CONFIG REQUIRED)
 
 # Add third-party library
 add_subdirectory(third_party/apriltag)
