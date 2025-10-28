@@ -33,8 +33,8 @@ std::optional<std::pair<Transformation, Transformation>> TransformTagToCam(const
   if (cv::solvePnPGeneric(
     object,
     image,
-    cam.cam_mat,
-    cam.dist_coef,
+    cam.GetCamMat(),
+    cam.GetDistCoef(),
     rvec,
     tvec,
     false,

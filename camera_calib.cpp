@@ -14,8 +14,7 @@ ABSL_FLAG(std::string, filename, "camera_calib.out", "File where outputs of cali
 namespace {
 
 using robot_vision::Camera;
-using robot_vision::ConstructCamera;
-using robot_vision::SerializeCam;
+// using robot_vision::SerializeCam;
 
 Camera CreateCamFromImages(cv::Vec3d cam_pos, double p, double y, double r, int chessboard_x, int chessboard_y, double chessboard_l) {
   cv::Mat frame;
@@ -84,7 +83,7 @@ Camera CreateCamFromImages(cv::Vec3d cam_pos, double p, double y, double r, int 
 
   cv::calibrateCamera(t_obj_points, img_points, cv::Size(frame.rows, frame.cols), cam_mat, dist_coef, rvecs, tvecs, cv::CALIB_RATIONAL_MODEL);
 
-  return ConstructCamera(cam_pos, p, y, r, cam_mat, dist_coef);
+  return Camera(cam_mat, dist_coef);
 }
 
 }  // namespace

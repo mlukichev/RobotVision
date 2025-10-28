@@ -4,7 +4,6 @@
 #include <opencv2/opencv.hpp>
 #include <optional>
 #include "camera.h"
-#include "apriltag.h"
 #include "tags.h"
 
 namespace robot_vision {

@@ -32,36 +32,19 @@ cv::Mat DeserializeMat(std::ifstream& in) {
   return out;
 }
 
-Camera DeserializeCam(std::ifstream& in) {
-  Camera cam;
-  cam.cam_mat = DeserializeMat(in);
-  cam.dist_coef = DeserializeMat(in);
-  cam.pos = DeserializeMat(in);
-  return cam;
+// Camera DeserializeCam(std::ifstream& in) {
+//   Camera cam;
+//   cam.cam_mat = DeserializeMat(in);
+//   cam.dist_coef = DeserializeMat(in);
+//   return cam;
+// }
+
+cv::Mat Camera::GetCamMat() const {
+  return cam_mat_;
 }
 
-Camera ConstructCamera(cv::Vec3d cam_pos, double p, double y, double r, cv::Mat cam_mat, cv::Mat dist_coef) {
-  Camera out;
-  cv::Mat pitch = (cv::Mat_<double>(3, 3) <<
-    std::cos(p), -std::sin(p), 0,
-    std::sin(p), std::cos(p), 0,
-    0, 0, 1
-  );
-  cv::Mat yaw = (cv::Mat_<double>(3, 3) <<
-    std::cos(y), 0, std::sin(y),
-    0, 1, 0,
-    -std::sin(y), 0, std::cos(y)
-  );
-  cv::Mat roll = (cv::Mat_<double>(3, 3) << 
-    1, 0, 0,
-    0, std::cos(r), -std::sin(r),
-    0, std::sin(r), std::cos(r)
-  );
-  cv::Mat rot_mat = pitch * yaw * roll;
-  out.pos = Transformation(cam_pos, rot_mat);
-  out.cam_mat = cam_mat;
-  out.dist_coef = dist_coef;
-  return out;
+cv::Mat Camera::GetDistCoef() const {
+  return dist_coef_;
 }
 
 }  // namespace robot_vision

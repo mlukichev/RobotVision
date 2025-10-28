@@ -78,7 +78,11 @@
     "valarray": "cpp",
     "variant": "cpp",
     "charconv": "cpp",
-    "format": "cpp"
+    "format": "cpp",
+    "pointers": "cpp",
+    "multi_span": "cpp",
+    "string_span": "cpp",
+    "*.inc": "cpp"
   },
   "C_Cpp.default.cppStandard": "c++17"
 }

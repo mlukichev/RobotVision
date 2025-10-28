@@ -39,6 +39,17 @@ message ServerRequest {
   }
 }
 
+message GetRobotPositionRequest {
+
+}
+
+message GetRobotPositionResponse {
+
+}
+
 service VisionSystem {
+  // Endpoint for camera co-processors to connect to the central unit (opened by Camera unit). 
   rpc OpenControlStream(stream ClientRequest) returns (stream ServerRequest);
+  // Gets robot position in World coordinates (called by PoboRIO).
+  rpc GetRobotPosition(GetRobotPositionRequest) returns (GetRobotPositionResponse);
 }

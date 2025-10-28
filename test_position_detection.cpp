@@ -158,8 +158,8 @@ void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
 
 
 int main() {
-  std::ifstream in("a.out");
-  robot_vision::Camera cam = robot_vision::DeserializeCam(in);
-  robot_vision::Tags tags;
-  GetRobotPositionTest(cam, tags);
+  // std::ifstream in("a.out");
+  // robot_vision::Camera cam = robot_vision::DeserializeCam(in);
+  // robot_vision::Tags tags;
+  // GetRobotPositionTest(cam, tags);
 }

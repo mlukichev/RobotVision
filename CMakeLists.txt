@@ -79,6 +79,21 @@ target_link_libraries(robot_vision_server PRIVATE
   vision_system
   absl::flags)
 
+# add_executable(camera_client camera_client.cpp)
+# target_link_libraries(camera_client
+#   absl::flags
+#   absl::log
+#   absl::status
+#   grpc
+#   apriltag
+#   ${OpenCV_LIBRARIES}
+  
+#   vision_proto
+#   robot_vision
+# )
+
+add_executable(find_cameras find_cameras.cpp)
+
 # target_link_libraries(camera_handling PRIVATE 
 #   apriltag 
 #   ${OpenCV_LIBRARIES}

@@ -14,6 +14,7 @@ ABSL_FLAG(std::string, server_address, "0.0.0.0:50001", "Vision system server ad
 namespace robot_vision {
 namespace {
 
+using grpc::ServerContext;
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
@@ -25,8 +26,11 @@ class VisionSystemImpl: public VisionSystem::Service {
   VisionSystemImpl(VisionSystemCore* vision_system_core): 
     vision_system_core_{vision_system_core} {}
 
-  virtual Status OpenControlStream(ServerContext* context,
-                                   ServerReaderWriter<ServerRequest, ClientRequest>* stream); 
+  Status OpenControlStream(ServerContext* context,
+                           ServerReaderWriter<ServerRequest, ClientRequest>* stream) override; 
+
+  Status GetRobotPosition(ServerContext* context,
+                           const GetRobotPositionRequest* request, GetRobotPositionResponse* response) override;
  private:
   VisionSystemCore* vision_system_core_;
 };
@@ -34,6 +38,8 @@ class VisionSystemImpl: public VisionSystem::Service {
 Status VisionSystemImpl::OpenControlStream(
   ServerContext* context,
   ServerReaderWriter<ServerRequest, ClientRequest>* stream) {
+  LOG(INFO) << "Client connected: " << context->peer();
+  
   ClientRequest req;
   while (stream->Read(&req)) {
     switch (req.msg_case()) {
@@ -51,6 +57,11 @@ Status VisionSystemImpl::OpenControlStream(
     }
   }
   return Status::OK;
+}
+
+Status VisionSystemImpl::GetRobotPosition(ServerContext* context,
+                           const GetRobotPositionRequest* request, GetRobotPositionResponse* response) {
+  return Status::OK;                           
 }
 
 void RunServer(VisionSystemCore* vision_system_core, const std::string& server_address) {
