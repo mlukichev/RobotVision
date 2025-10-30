@@ -73,9 +73,7 @@ Camera CreateCamFromImages(cv::Vec3d cam_pos, double p, double y, double r, int 
     }
   }
 
-  
-
-  // for (int i=0; i<img_points.size(); ++i) {
+  // for (int i=0;  i<img_points.size(); ++i) {
   //   std::cerr << img_points[i].size() << std::endl;
   // }
   

@@ -2,10 +2,17 @@
 #define FIND_CAMERAS_H
 
 #include <iostream>
+#include <vector>
 
-struct USBCamera {
-  std::string port;
-  std::string name;
+class USBCamera {
+ public:
+  USBCamera(int id, std::string port) : id_{id}, port_{port} {}
+
+ private:
+  int id_;
+  std::string port_;
 }
+
+std::vector<USBCamera> GetConnectedCameras();
 
 #endif // FIND_CAMERAS_H
