@@ -4,15 +4,12 @@
 #include <iostream>
 #include <vector>
 
-class USBCamera {
+class OpenedCamera {
  public:
-  USBCamera(int id, std::string port) : id_{id}, port_{port} {}
-
+  
  private:
-  int id_;
-  std::string port_;
+  int id;
+  std::unique_ptr<cv::VideoCapture> cap;
 }
-
-std::vector<USBCamera> GetConnectedCameras();
 
 #endif // FIND_CAMERAS_H

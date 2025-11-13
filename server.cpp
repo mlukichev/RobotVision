@@ -2,6 +2,7 @@
 #include <optional>
 #include <memory>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/flags/flag.h"
 #include "absl/log/log.h"
 #include "data_handling.pb.h"
@@ -20,6 +21,8 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerReaderWriter;
 using grpc::Status;
+using grpc::StatusCode;
+using grpc::WriteOptions;
 
 class VisionSystemImpl: public VisionSystem::Service {
  public:
@@ -31,14 +34,35 @@ class VisionSystemImpl: public VisionSystem::Service {
 
   Status GetRobotPosition(ServerContext* context,
                            const GetRobotPositionRequest* request, GetRobotPositionResponse* response) override;
+
+  void SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients);
  private:
+  absl::Status SendMessage(const std::string& client, const ServerRequest& msg);
+
   VisionSystemCore* vision_system_core_;
+
+  absl::Mutex mu_;
+  std::unordered_map<std::string, ServerReaderWriter<ServerRequest, ClientRequest>*> clients_;
 };
 
 Status VisionSystemImpl::OpenControlStream(
   ServerContext* context,
   ServerReaderWriter<ServerRequest, ClientRequest>* stream) {
   LOG(INFO) << "Client connected: " << context->peer();
+
+  {
+    absl::MutexLock lock{&mu_};
+    auto [_, inserted] = clients_.try_emplace(context->peer(), stream);
+    if (!inserted) {
+      LOG(ERROR) << "Client " << context->peer() << " already connected.";
+      return Status(StatusCode::INVALID_ARGUMENT, "Client already connected.");
+    }
+  }
+
+  absl::Cleanup cleanup_client = [&]() { 
+    absl::MutexLock lock{&mu_};
+    clients_.erase(context->peer()); 
+  };
   
   ClientRequest req;
   while (stream->Read(&req)) {
@@ -56,13 +80,52 @@ Status VisionSystemImpl::OpenControlStream(
       break;
     }
   }
-  return Status::OK;
+  return Status();
 }
 
 Status VisionSystemImpl::GetRobotPosition(ServerContext* context,
                            const GetRobotPositionRequest* request, GetRobotPositionResponse* response) {
   return Status::OK;                           
 }
+
+absl::Status VisionSystemImpl::SendMessage(const std::string& client, const ServerRequest& msg) {
+  absl::MutexLock lock{&mu_};
+  auto it = clients_.find(client);
+  if (it == clients_.end()) {
+    LOG(ERROR) << "SendMessage: Unknown client: " << client;
+    return absl::InvalidArgumentError("Unknown client");
+  }
+
+  if (!it->second->Write(msg, WriteOptions())) {
+    LOG(ERROR) << "SendMessage: Write failed to client: " << client;
+    return absl::InternalError("Write failed");
+  }
+}
+
+void VisionSystemImpl::SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients) {
+  std::vector<std::string> client_keys;
+  {
+    absl::MutexLock lock{&mu_};
+    client_keys.reserve(clients_.size());
+    for (const auto& [client, _] : clients_) {
+      client_keys.push_back(client);
+    }
+  }
+
+  ServerRequest msg;
+  auto* set_camera_coefficients = msg.mutable_set_camera_coefficients();
+  set_camera_coefficients->set_camera_id(camera_id);
+  // TODO copy protobuf set_camera_coefficients->
+  // TODO use lock for clients_
+  for (const std::string& client : client_keys) {
+    absl::Status status = SendMessage(client, msg);
+    if (!status.ok()) {
+      LOG(WARNING) << "Could not write camera coefficients to client: " << client;
+    }
+    // ignore errors
+  }
+}
+
 
 void RunServer(VisionSystemCore* vision_system_core, const std::string& server_address) {
   VisionSystemImpl service(vision_system_core);

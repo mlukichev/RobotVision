@@ -14,17 +14,18 @@ namespace robot_vision {
 
 class Camera {
  public:
-  Camera(const cv::Mat& cam_mat, const cv::Mat& dist_coef): cam_mat_{cam_mat}, dist_coef_{dist_coef} {}
+  Camera(int id, const cv::Mat& cam_mat, const cv::Mat& dist_coef): id_{id}, cam_mat_{cam_mat}, dist_coef_{dist_coef} {}
   cv::Mat GetCamMat() const;
   cv::Mat GetDistCoef() const;
  private:
+  int id_;
   cv::Mat cam_mat_;
   cv::Mat dist_coef_;
 };
 
-// void SerializeCam(const Camera& cam, std::ofstream& out);
+void SerializeCam(std::ofstream& in, const Camera& cam);
 
-// Camera DeserializeCam(std::ifstream& in);
+Camera DeserializeCam(std::ifstream& in);
 
 
 } // namespace robot_vision

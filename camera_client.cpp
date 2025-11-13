@@ -18,9 +18,17 @@
 
 namespace robot_vision {
 
+class OpenedCamera {
+ public:
+  OpenedCamera(const Camera& cam, std::unique_ptr<cv::VideoCapture> cap) cam_{cam}, cap_{cap} {}
+ private:
+  Camera cam_;
+  std::unique_ptr<cv::VideoCapture> cap_;
+}
 class CameraSet {
  public:
-  CameraSet(std::unordered_map<int, Camera> cameras): cameras_{cameras} {}
+  CameraSet(const std::unordered_map<int, OpenedCamera>& cameras): cameras_{cameras} {}
+
   
   absl::StatusOr<Camera> GetCamera(int port) {
     auto it = cameras_.find(port);
@@ -29,12 +37,6 @@ class CameraSet {
       return absl::InternalError("Invalid port");
     }
     return it->second;
-  }
-
-  void ForEachCamera(std::function<void(int port, const Camera&)> visitor) {
-    for (const auto& [port, camera] : cameras_) {
-      visitor(port, camera);
-    }
   }
 
   // std::unordered_map<int, T> Apply(std::function<T(int port, const Camera&)> visitor) {
@@ -48,14 +50,95 @@ class CameraSet {
 };
 
 namespace {
+class VisionSystemClient {
+ public:
+  VisionSystemImpl() {}
 
-void Run(CameraSet& camera_set) {
-  std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+  absl::Status Run();
+  absl::Status ReportCameraPositions(const CameraSet& camera_set);
+ private:
+  absl::Status SendMessage(const ClientRequest& msg);
+
+  absl::Mutex mu_;
+  std::optional<ClientReaderWriter<ServerRequest, ClientRequest>*> server_;
+};
+
+CameraSet BuildCameraSet() {
+  CameraSet cam_set;
+  fs::path usb_directory("/dev/v4l/by-id");
+  for (auto& p : fs::directory_iterator(usb_directory)) {
+    fs::path current_camera = fs::read_symlink(p);
+    std::string video_num = current_camera;
+    if (video_num.find("video") != 6) {
+      continue;
+    }
+    int id = (int)(video_num[11]-'0');
+    std::unique_ptr<cv::VideoCapture> cap(id);
+    if (cap.isOpened() && cam_set.cameras_.find(id) != cam_set.cameras_.end()) {
+      cam_set.cameras_[id] = OpenedCamera(cap, );
+    }
+  }
+}
+
+absl::Status VisionSystemClient::Run() {
+  std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
   std::unique_ptr<VisionSystem::Stub> vision_system = VisionSystem::NewStub(channel);
 
   grpc::ClientContext context;
 
   std::unique_ptr<grpc::ClientReaderWriter<ClientRequest, ServerRequest>> stream  = vision_system->OpenControlStream(&context);
+
+  {
+    absl::MutexLock lock{&mu_};
+    if (!server_.has_value()) {
+      LOG(ERROR) << "Client is already connected.";
+      return absl::InvalidArgumentError("Client already connected.");
+    }
+    server_ = stream.get();
+  }
+
+  absl::Cleanup cleanup_client = [&]() { 
+    absl::MutexLock lock{&mu_};
+    server_.reset(); 
+  }; 
+
+  ServerRequest req;
+  while (stream->Read(&req)) {
+    switch (req.msg_case()) {
+    case ServerRequest::kSetCameraCoefficients:
+      SetCameraCoefficients(req.set_camera_coefficients());
+      break;
+    default:
+      LOG(WARNING) << "Dropping unrecognized message: " << req.DebugString();
+      break;
+    }
+  }
+
+  return absl::OkStatus();
+
+}
+
+absl::Status VisionSystemImpl::SendMessage(const ClientRequest& msg) {
+  absl::MutexLock lock{&mu_};
+  if (!server_.has_value()) {
+    LOG(ERROR) << "SendMessage: Not connected to server";
+    return absl::InvalidArgumentError("Not connected");
+  }
+
+  if (!(*server_)->Write(msg, WriteOptions())) {
+    LOG(ERROR) << "SendMessage: Write failed to server";
+    return absl::InternalError("Write failed");
+  }
+}
+
+absl::Status ReportCameraPositions(const CameraSet& camera_set) {
+  ClientRequest req;
+  // TODO fill out ClientRequest
+  
+ return SendMessage(req);
+}
+
+void ComputePosition() {
 
   cv::VideoCapture cap(0);
   ApriltagDetector detector;
@@ -103,6 +186,7 @@ void Run(CameraSet& camera_set) {
         sols.push_back(pos1->second);
       }
     }
+
   }
 }
 

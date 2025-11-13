@@ -77,7 +77,8 @@ add_executable(robot_vision_server server.cpp)
 target_link_libraries(robot_vision_server PRIVATE
   vision_proto
   vision_system
-  absl::flags)
+  absl::flags
+  absl::cleanup)
 
 # add_executable(camera_client camera_client.cpp)
 # target_link_libraries(camera_client
@@ -93,6 +94,9 @@ target_link_libraries(robot_vision_server PRIVATE
 # )
 
 add_executable(find_cameras find_cameras.cpp)
+target_link_libraries(find_cameras
+  ${OpenCV_LIBRARIES}
+)
 
 # target_link_libraries(camera_handling PRIVATE 
 #   apriltag 

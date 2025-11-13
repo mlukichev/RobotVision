@@ -32,12 +32,18 @@ cv::Mat DeserializeMat(std::ifstream& in) {
   return out;
 }
 
-// Camera DeserializeCam(std::ifstream& in) {
-//   Camera cam;
-//   cam.cam_mat = DeserializeMat(in);
-//   cam.dist_coef = DeserializeMat(in);
-//   return cam;
-// }
+Camera DeserializeCam(std::ifstream& in) {
+  int a;
+  in >> a;
+  Camera cam(a, DeserializeMat(in), DeserializeMat(in));
+  return cam;
+}
+
+void SerializeCam(std::ofstream& in, const Camera& cam) {
+  cam << cam.id_;
+  SerializeMat(cam.cam_mat_);
+  SerializeMat(cam.dist_coef);
+}
 
 cv::Mat Camera::GetCamMat() const {
   return cam_mat_;
