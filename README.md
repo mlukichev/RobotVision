@@ -40,20 +40,16 @@ conan install . --output-folder=build --build=missing
 
 ## Build the Project
 
-Change to the `build` directory:
+In the top repository directory:
 
-```
-cd build
-```
+* Generate makefiles using conan toolchain:
 
-Generate makefiles using conan toolchain:
+  ```
+  cmake -B build --preset conan-release
+  ```
 
-```
-cmake .. --preset conan-release
-```
+* Run the build:
 
-Run the build:
-
-```
-make
-```
+  ```
+  cmake --build --preset conan-release
+  ```
