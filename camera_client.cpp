@@ -2,7 +2,6 @@
 #include <optional>
 #include <vector>
 #include <memory>
-#include <opencv2/opencv.hpp>
 #include <unordered_map>
 #include <filesystem>
 
@@ -14,6 +13,7 @@
 #include "data_handling.pb.h"
 #include "data_handling.grpc.pb.h"
 #include "grpcpp/grpcpp.h"
+#include "opencv2/opencv.hpp"
 
 #include "transformations.h"
 #include "camera_handling.h"
@@ -22,6 +22,10 @@
 #include "tag_detector.h"
 
 namespace robot_vision {
+
+namespace {
+namespace fs = std::filesystem;
+}  // namespace
 
 // class OpenedCamera {
 //  public:
@@ -35,18 +39,11 @@ namespace robot_vision {
 
 class CameraSet {
  public:
-  CameraSet() {
-    captures_ = {};
-    camera_metadata_ = {};
-  }
-
-  CameraSet() {}
-
   void BuildCameraSet();
 
-  absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> ComputePosition(int cam_id, double apriltag_size) const;
+  absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> ComputePosition(int cam_id, double apriltag_size);
 
-  std::vector<int> GetKeys() const;
+  std::vector<int> GetKeys();
  
  private:
   absl::Mutex mu_;
@@ -54,7 +51,7 @@ class CameraSet {
   std::unordered_map<int, Camera> camera_metadata_; // ID to Camera metadata
 };
 
-absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> CameraSet::ComputePosition(int cam_id, double apriltag_size) const {
+absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> CameraSet::ComputePosition(int cam_id, double apriltag_size) {
   absl::MutexLock lock{&mu_};
 
   auto cap = captures_.find(cam_id);
@@ -78,14 +75,14 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   }
   ApriltagDetector detector;
   std::vector<TagPoints> img_points = detector.Detect(frame);
-  absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> out;
+  std::unordered_map<int, std::pair<Transformation, Transformation>> out;
   for (const TagPoints& p : img_points) {
     std::optional<std::pair<Transformation, Transformation>> out_pos = TransformTagToCam(meta->second, p.points, apriltag_size);
     if (out_pos.has_value()) {
-      out.emplace(p.id, std::move(out_pos));
+      out.emplace(p.id, std::move(*out_pos));
     }
   }
-  return out;
+  return absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>>(std::move(out));
 }
 
 int GetIdFromName(const std::string& name) {
@@ -115,7 +112,7 @@ void CameraSet::BuildCameraSet() {
   }  
 }
 
-std::vector<int> CameraSet::GetKeys() const {
+std::vector<int> CameraSet::GetKeys() {
   absl::MutexLock lock{&mu_};
   std::vector<int> out;
   for (auto it=captures_.begin(); it != captures_.end(); ++it) {
@@ -138,7 +135,7 @@ class VisionSystemClient {
   VisionSystemClient() {}
 
   absl::Status Run();
-  absl::Status ReportCameraPositions(const CameraSet& camera_set, double apriltag_size);
+  absl::Status ReportCameraPositions(CameraSet& camera_set, double apriltag_size);
  private:
   absl::Status SendMessage(const ClientRequest& msg);
 
@@ -203,7 +200,7 @@ absl::Status VisionSystemClient::SendMessage(const ClientRequest& msg) {
   return absl::OkStatus();
 }
 
-absl::Status VisionSystemClient::ReportCameraPositions(const CameraSet& camera_set, double apriltag_size) {
+absl::Status VisionSystemClient::ReportCameraPositions(CameraSet& camera_set, double apriltag_size) {
   ClientRequest req;
   std::unordered_map<int, std::vector<Transformation>> out;
   robot_vision::ReportCameraPositions* report_camera_positions = req.mutable_report_camera_positions();
@@ -212,7 +209,7 @@ absl::Status VisionSystemClient::ReportCameraPositions(const CameraSet& camera_s
     absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = camera_set.ComputePosition(k, apriltag_size);
 
     if (!pos.ok()) {
-      LOG(ERROR) << "Could not compute camera position: " << pos;
+      LOG(ERROR) << "Could not compute camera position: " << pos.status();
       continue;
     }
 

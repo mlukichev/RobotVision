@@ -1,9 +1,10 @@
+#include "find_cameras.h"
+
 #include <iostream>
 #include <filesystem>
 #include <vector>
-#include <opencv2/opencv.hpp>
 
-#include "find_cameras.h"
+#include "opencv2/opencv.hpp"
 
 namespace fs = std::filesystem;
 
@@ -15,7 +16,8 @@ int GetIdFromName(std::string name) {
   return (int)(name[loc+7]-'0');
 }
 
-std::unique_ptr< OpenConnectedCameras() {
+/*
+std::unique_ptr OpenConnectedCameras() {
   // std::vector<USBCamera> out;
   fs::path usb_directory("/dev/v4l/by-id");
   for (auto& p : fs::directory_iterator(usb_directory)) {
@@ -31,8 +33,9 @@ std::unique_ptr< OpenConnectedCameras() {
     }
   }
 }
+*/
 
 int main() {
   std::cout << GetIdFromName("usb-Arducam_Technology_Co.__Ltd._camera-2_UC762-video-index0") << std::endl;
-  GetConnectedCameras();
+  // GetConnectedCameras();
 }
