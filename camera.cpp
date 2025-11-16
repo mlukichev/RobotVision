@@ -10,6 +10,18 @@
 
 namespace robot_vision {
 
+int Camera::GetId() const {
+  return id_;
+}
+
+cv::Mat Camera::GetCamMat() const {
+  return cam_mat_;
+}
+
+cv::Mat Camera::GetDistCoef() const {
+  return dist_coef_;
+}
+
 void SerializeMat(std::ofstream& out, const cv::Mat& mat) {
   out << mat.rows << " " << mat.cols << std::endl;
   for (int i=0; i<mat.rows; ++i) {
@@ -40,17 +52,9 @@ Camera DeserializeCam(std::ifstream& in) {
 }
 
 void SerializeCam(std::ofstream& in, const Camera& cam) {
-  cam << cam.id_;
-  SerializeMat(cam.cam_mat_);
-  SerializeMat(cam.dist_coef);
-}
-
-cv::Mat Camera::GetCamMat() const {
-  return cam_mat_;
-}
-
-cv::Mat Camera::GetDistCoef() const {
-  return dist_coef_;
+  in << cam.GetId();
+  SerializeMat(in, cam.GetCamMat());
+  SerializeMat(in, cam.GetDistCoef());
 }
 
 }  // namespace robot_vision

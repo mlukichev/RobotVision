@@ -1,6 +1,7 @@
 #include "transformations.h"
 
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 namespace robot_vision {
 
@@ -22,8 +23,18 @@ Transformation::Transformation(const cv::Vec3d& translation, const cv::Mat& rota
   );
 }
 
-cv::Mat Transformation::self() {
+cv::Mat Transformation::Self() {
   return mat_;
+}
+
+std::vector<double> Transformation::ToVector() const {
+  std::vector<double> out;
+  for (int i=0; i<4; ++i) {
+    for (int j=0; j<4; ++j) {
+      out.push_back(mat_.at<double>(i, j));
+    }
+  }
+  return out;
 }
 
 Transformation Transformation::operator*(const Transformation& other) const {

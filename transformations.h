@@ -2,6 +2,7 @@
 #define TRANSFORMATIONS_H
 
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 namespace robot_vision {
 
@@ -17,7 +18,13 @@ class Transformation {
 
   Transformation(): mat_{cv::Mat::eye(4, 4, CV_64F)} {}
 
-  cv::Mat self();
+  Transformation(const Transformation& o) = default;
+
+  Transformation(Transformation&& o) = default;
+
+  cv::Mat Self();
+
+  std::vector<double> ToVector() const;
 
   cv::Vec3d ToVec3d();
 

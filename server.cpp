@@ -9,6 +9,7 @@
 #include "data_handling.grpc.pb.h"
 #include "grpcpp/server_builder.h"
 #include "vision_system.h"
+#include <thread>
 
 ABSL_FLAG(std::string, server_address, "0.0.0.0:50001", "Vision system server address");
 
@@ -134,6 +135,14 @@ void RunServer(VisionSystemCore* vision_system_core, const std::string& server_a
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
   std::unique_ptr<Server> server(builder.BuildAndStart());
+
+
+  std::thread set_camera_coefficients([&]() {
+    // for () {
+    //   service.SetCameraCoefficients()
+    // }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  });
 
   LOG(INFO) << "Server listening on " << server_address;
   server->Wait();

@@ -1,13 +1,16 @@
 #include <iostream>
 #include <optional>
+#include <vector>
 #include <memory>
 #include <opencv2/opencv.hpp>
 #include <unordered_map>
+#include <filesystem>
 
 #include "absl/flags/flag.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/cleanup/cleanup.h"
 #include "data_handling.pb.h"
 #include "data_handling.grpc.pb.h"
 #include "grpcpp/grpcpp.h"
@@ -15,56 +18,88 @@
 #include "transformations.h"
 #include "camera_handling.h"
 #include "apriltag_detector.h"
+#include "apriltag_detector.h"
+#include "tag_detector.h"
 
 namespace robot_vision {
 
-class OpenedCamera {
- public:
-  OpenedCamera(const Camera& cam, std::unique_ptr<cv::VideoCapture> cap) cam_{cam}, cap_{cap} {}
- private:
-  Camera cam_;
-  std::unique_ptr<cv::VideoCapture> cap_;
-}
+// class OpenedCamera {
+//  public:
+//   OpenedCamera(const Camera& cam, cv::VideoCapture& cap): cam_{cam}, cap_{std::unique_ptr<cv::VideoCapture>(cap)} {}
+//   std::optional<std::pair<Transformation, Transformation>> ComputePosition(double apriltag_size);
+
+//  private:
+//   Camera cam_;
+//   std::unique_ptr<cv::VideoCapture> cap_;
+// };
+
 class CameraSet {
  public:
-  CameraSet(const std::unordered_map<int, OpenedCamera>& cameras): cameras_{cameras} {}
-
-  
-  absl::StatusOr<Camera> GetCamera(int port) {
-    auto it = cameras_.find(port);
-    if (it == cameras_.end()) {
-      LOG(ERROR) << "No camera on port " << port;
-      return absl::InternalError("Invalid port");
-    }
-    return it->second;
+  CameraSet() {
+    captures_ = {};
+    camera_metadata_ = {};
   }
 
-  // std::unordered_map<int, T> Apply(std::function<T(int port, const Camera&)> visitor) {
+  CameraSet() {}
 
-  //   for (auto [port, camera] : cameras_) {
+  void BuildCameraSet();
 
-  //   }
-  // }
+  absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> ComputePosition(int cam_id, double apriltag_size) const;
+
+  std::vector<int> GetKeys() const;
+ 
  private:
-  std::unordered_map<int, Camera> cameras_;
-};
-
-namespace {
-class VisionSystemClient {
- public:
-  VisionSystemImpl() {}
-
-  absl::Status Run();
-  absl::Status ReportCameraPositions(const CameraSet& camera_set);
- private:
-  absl::Status SendMessage(const ClientRequest& msg);
-
   absl::Mutex mu_;
-  std::optional<ClientReaderWriter<ServerRequest, ClientRequest>*> server_;
+  std::unordered_map<int, std::unique_ptr<cv::VideoCapture>> captures_; // ID to VideoCapture
+  std::unordered_map<int, Camera> camera_metadata_; // ID to Camera metadata
 };
 
-CameraSet BuildCameraSet() {
-  CameraSet cam_set;
+absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> CameraSet::ComputePosition(int cam_id, double apriltag_size) const {
+  absl::MutexLock lock{&mu_};
+
+  auto cap = captures_.find(cam_id);
+
+  if (cap == captures_.end()) {
+    LOG(ERROR) << "Camera with id " << cam_id << " does not have an opened capture";
+    return absl::InvalidArgumentError("Camera id does not have an opened capture");
+  }
+
+  auto meta = camera_metadata_.find(cam_id);
+
+  if (meta == camera_metadata_.end()) {
+    LOG(ERROR) << "Camera with id " << cam_id << " does not have metadata";
+    return absl::InvalidArgumentError("Camera id does not have metadata");
+  }
+
+  cv::Mat frame;
+  if (!cap->second->read(frame)) {
+    LOG(ERROR) << "Could not read frame for camera id " << cam_id;
+    return absl::InternalError("Could not read from camera");
+  }
+  ApriltagDetector detector;
+  std::vector<TagPoints> img_points = detector.Detect(frame);
+  absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> out;
+  for (const TagPoints& p : img_points) {
+    std::optional<std::pair<Transformation, Transformation>> out_pos = TransformTagToCam(meta->second, p.points, apriltag_size);
+    if (out_pos.has_value()) {
+      out.emplace(p.id, std::move(out_pos));
+    }
+  }
+  return out;
+}
+
+int GetIdFromName(const std::string& name) {
+  int loc = name.find("camera-");
+  if (loc == -1) {
+    return -1;
+  }
+  return (int)(name[loc+7]-'0');
+}
+
+void CameraSet::BuildCameraSet() {
+  absl::MutexLock lock{&mu_};
+
+  captures_.clear();
   fs::path usb_directory("/dev/v4l/by-id");
   for (auto& p : fs::directory_iterator(usb_directory)) {
     fs::path current_camera = fs::read_symlink(p);
@@ -72,12 +107,47 @@ CameraSet BuildCameraSet() {
     if (video_num.find("video") != 6) {
       continue;
     }
-    int id = (int)(video_num[11]-'0');
-    std::unique_ptr<cv::VideoCapture> cap(id);
-    if (cap.isOpened() && cam_set.cameras_.find(id) != cam_set.cameras_.end()) {
-      cam_set.cameras_[id] = OpenedCamera(cap, );
-    }
+    int port = (int)(video_num[11]-'0');
+    std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(port));
+    
+    int camera_id = GetIdFromName(static_cast<fs::path>(p).filename());
+    captures_[camera_id] = std::move(cap);
+  }  
+}
+
+std::vector<int> CameraSet::GetKeys() const {
+  absl::MutexLock lock{&mu_};
+  std::vector<int> out;
+  for (auto it=captures_.begin(); it != captures_.end(); ++it) {
+    out.push_back(it->first);
   }
+  return out;
+}
+
+namespace {
+
+const std::string server_address = "";
+
+namespace fs = std::filesystem;
+
+using grpc::ClientReaderWriter;
+using grpc::WriteOptions;
+
+class VisionSystemClient {
+ public:
+  VisionSystemClient() {}
+
+  absl::Status Run();
+  absl::Status ReportCameraPositions(const CameraSet& camera_set, double apriltag_size);
+ private:
+  absl::Status SendMessage(const ClientRequest& msg);
+
+  absl::Mutex mu_;
+  std::optional<ClientReaderWriter<ClientRequest, ServerRequest>*> server_;
+};
+
+CameraSet BuildCameraSet() {
+  CameraSet cam_set;
 }
 
 absl::Status VisionSystemClient::Run() {
@@ -118,76 +188,52 @@ absl::Status VisionSystemClient::Run() {
 
 }
 
-absl::Status VisionSystemImpl::SendMessage(const ClientRequest& msg) {
+absl::Status VisionSystemClient::SendMessage(const ClientRequest& msg) {
   absl::MutexLock lock{&mu_};
   if (!server_.has_value()) {
     LOG(ERROR) << "SendMessage: Not connected to server";
     return absl::InvalidArgumentError("Not connected");
   }
 
-  if (!(*server_)->Write(msg, WriteOptions())) {
-    LOG(ERROR) << "SendMessage: Write failed to server";
+  if (!(*server_)->Write(msg)) {
+    LOG(ERROR) << "SendMessage: Write failed";
     return absl::InternalError("Write failed");
   }
+
+  return absl::OkStatus();
 }
 
-absl::Status ReportCameraPositions(const CameraSet& camera_set) {
+absl::Status VisionSystemClient::ReportCameraPositions(const CameraSet& camera_set, double apriltag_size) {
   ClientRequest req;
-  // TODO fill out ClientRequest
-  
- return SendMessage(req);
-}
+  std::unordered_map<int, std::vector<Transformation>> out;
+  robot_vision::ReportCameraPositions* report_camera_positions = req.mutable_report_camera_positions();
+  for (int k : camera_set.GetKeys()) {
 
-void ComputePosition() {
+    absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = camera_set.ComputePosition(k, apriltag_size);
 
-  cv::VideoCapture cap(0);
-  ApriltagDetector detector;
-  cv::Mat frame, gray;
-  std::vector<Transformation> sols; 
-
-  while (true) {
-    // // Get camera coords...
-    // cap.read(frame);
-    // cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-    // std::vector<TagPoints> out = detector.Detect(gray);
-    // std::vector<Transformation> sols;
-    // for (int i=0; i<out.size(); ++i) {
-    //   std::optional<std::pair<Transformation, Transformation>> pos1 = TransformTagToCam(cam, tags, out[i].id, out[i].points, 64.29);
-    //   sols.push_back(pos1->first);
-    //   sols.push_back(pos1->second);
-    // }
-    // ClientRequest req;
-    // // Set request fields...
-    // ReportCameraPositions* camera_positions = req.mutable_report_camera_positions();
-    // camera_set.ForEachCamera(
-    //   [&camera_positions](int port, const Camera& cam) {      
-    //     CameraPosition* camera_position = camera_positions->add_camera_position();
-    //     camera_position->set_camera_id(cam.id);
-    //   });
-    
-    // if (!stream->Write(req)) {
-    //   LOG(ERROR) << "The stream has been closed.";
-    //   return;
-    // }
-
-
-    for (int cam=0; cam<camera_set.size(); ++i) {
-      cap.read(frame);
-      cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-      std::vector<TagPoints> out = detector.Detect(gray);
-      ClientRequest req;
-      ReportCameraPositions* camera_positions = req.mutable_report_camera_positions();
-      std::vector<Transformation> sols;
-      for (int i=0; i<out.size(); ++i) {
-        std::optional<std::pair<Transformation, Transformation>> pos1 = TransformTagToCam(camera_set.GetCamera(cam), tags, out[i].id, out[i].points, 64.29);
-        CameraPosition* camera_position = camera_positions->add_camera_position();
-        camera_position->set_camera_id(cam.id);
-        sols.push_back(pos1->first);
-        sols.push_back(pos1->second);
-      }
+    if (!pos.ok()) {
+      LOG(ERROR) << "Could not compute camera position: " << pos;
+      continue;
     }
 
+    CameraPosition* camera_position = report_camera_positions->add_camera_position();
+    camera_position->set_camera_id(k);
+
+    for (const auto& [tag_id, transformation_pair] : *pos) {
+      CameraInTagCoords* camera_in_tag_coords1 = camera_position->add_camera_in_tag_coords();
+      camera_in_tag_coords1->set_tag_id(tag_id);
+      for (double v : transformation_pair.first.ToVector()) {
+        camera_in_tag_coords1->add_mat(v);
+      }
+      CameraInTagCoords* camera_in_tag_coords2 = camera_position->add_camera_in_tag_coords();
+      camera_in_tag_coords2->set_tag_id(tag_id);
+      for (double v : transformation_pair.second.ToVector()) {
+        camera_in_tag_coords2->add_mat(v);
+      }
+    }
   }
+   
+  return SendMessage(req);
 }
 
 }  // namespace
@@ -195,7 +241,9 @@ void ComputePosition() {
 
 int main(int argc, char* argv[]) {
   robot_vision::CameraSet camera_set;
+  robot_vision::VisionSystemClient client;
   while (true) {
-    Run();
+    client.Run();
+    client.ReportCameraPositions(camera_set, 64.29);
   }
 }

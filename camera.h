@@ -17,6 +17,7 @@ class Camera {
   Camera(int id, const cv::Mat& cam_mat, const cv::Mat& dist_coef): id_{id}, cam_mat_{cam_mat}, dist_coef_{dist_coef} {}
   cv::Mat GetCamMat() const;
   cv::Mat GetDistCoef() const;
+  int GetId() const;
  private:
   int id_;
   cv::Mat cam_mat_;

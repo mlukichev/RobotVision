@@ -15,7 +15,7 @@ int GetIdFromName(std::string name) {
   return (int)(name[loc+7]-'0');
 }
 
-void /*std::vector<USBCamera>*/ GetConnectedCameras() {
+std::unique_ptr< OpenConnectedCameras() {
   // std::vector<USBCamera> out;
   fs::path usb_directory("/dev/v4l/by-id");
   for (auto& p : fs::directory_iterator(usb_directory)) {
