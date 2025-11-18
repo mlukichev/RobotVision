@@ -1,9 +1,11 @@
+#include <atomic>
 #include <iostream>
 #include <optional>
 #include <vector>
 #include <memory>
 #include <unordered_map>
 #include <filesystem>
+#include <thread>
 
 #include "absl/flags/flag.h"
 #include "absl/log/log.h"
@@ -21,11 +23,12 @@
 #include "apriltag_detector.h"
 #include "tag_detector.h"
 
+ABSL_FLAG(std::string, server_address, "10.0.0.1:50001", "Server address");
+
 namespace robot_vision {
 
 namespace {
 namespace fs = std::filesystem;
-}  // namespace
 
 // class OpenedCamera {
 //  public:
@@ -40,6 +43,7 @@ namespace fs = std::filesystem;
 class CameraSet {
  public:
   void BuildCameraSet();
+  void SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients);
 
   absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> ComputePosition(int cam_id, double apriltag_size);
 
@@ -112,6 +116,10 @@ void CameraSet::BuildCameraSet() {
   }  
 }
 
+void CameraSet::SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients) {
+  LOG(FATAL) << "TODO: Implement";
+}
+
 std::vector<int> CameraSet::GetKeys() {
   absl::MutexLock lock{&mu_};
   std::vector<int> out;
@@ -121,12 +129,6 @@ std::vector<int> CameraSet::GetKeys() {
   return out;
 }
 
-namespace {
-
-const std::string server_address = "";
-
-namespace fs = std::filesystem;
-
 using grpc::ClientReaderWriter;
 using grpc::WriteOptions;
 
@@ -134,20 +136,20 @@ class VisionSystemClient {
  public:
   VisionSystemClient() {}
 
-  absl::Status Run();
-  absl::Status ReportCameraPositions(CameraSet& camera_set, double apriltag_size);
+  absl::Status Run(const std::string& server_address);
+  absl::Status ReportCameraPositions(double apriltag_size);
  private:
   absl::Status SendMessage(const ClientRequest& msg);
 
   absl::Mutex mu_;
   std::optional<ClientReaderWriter<ClientRequest, ServerRequest>*> server_;
+  CameraSet camera_set_;
 };
 
-CameraSet BuildCameraSet() {
-  CameraSet cam_set;
-}
+absl::Status VisionSystemClient::Run(const std::string& server_address) {
+  camera_set_.BuildCameraSet(); // first invocation before connecting to server
 
-absl::Status VisionSystemClient::Run() {
+  LOG(INFO) << "Connecting to " << server_address;
   std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials());
   std::unique_ptr<VisionSystem::Stub> vision_system = VisionSystem::NewStub(channel);
 
@@ -167,13 +169,42 @@ absl::Status VisionSystemClient::Run() {
   absl::Cleanup cleanup_client = [&]() { 
     absl::MutexLock lock{&mu_};
     server_.reset(); 
-  }; 
+  };
+
+  absl::Mutex threads_mutex;
+  std::atomic<bool> stop{false};
+  absl::CondVar cv;
+
+  std::thread report_camera_positions([&]() {
+    absl::MutexLock lock{&threads_mutex};
+    while (!stop) {
+      cv.WaitWithTimeout(&threads_mutex, absl::Milliseconds(1));
+      if (!stop) {
+        absl::Status status = ReportCameraPositions(64.29);
+        if (!status.ok()) {
+          LOG(ERROR) << "Failed to report camera positions: " << status;
+        }
+      }
+    }
+  });
+
+  std::thread build_camera_set([&]() {
+    absl::MutexLock lock{&threads_mutex};
+    while (!stop) {
+      cv.WaitWithTimeout(&threads_mutex, absl::Seconds(10));
+      if (!stop) {
+        camera_set_.BuildCameraSet();
+      }
+    }
+  }); 
 
   ServerRequest req;
   while (stream->Read(&req)) {
     switch (req.msg_case()) {
     case ServerRequest::kSetCameraCoefficients:
-      SetCameraCoefficients(req.set_camera_coefficients());
+      camera_set_.SetCameraCoefficients(
+        req.set_camera_coefficients().camera_id(),
+        req.set_camera_coefficients().camera_coefficients());
       break;
     default:
       LOG(WARNING) << "Dropping unrecognized message: " << req.DebugString();
@@ -181,6 +212,13 @@ absl::Status VisionSystemClient::Run() {
     }
   }
 
+  absl::MutexLock lock{&threads_mutex};
+  stop = true;
+  cv.SignalAll();
+
+  report_camera_positions.join();
+  build_camera_set.join();
+  
   return absl::OkStatus();
 
 }
@@ -200,13 +238,14 @@ absl::Status VisionSystemClient::SendMessage(const ClientRequest& msg) {
   return absl::OkStatus();
 }
 
-absl::Status VisionSystemClient::ReportCameraPositions(CameraSet& camera_set, double apriltag_size) {
+absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
   ClientRequest req;
   std::unordered_map<int, std::vector<Transformation>> out;
   robot_vision::ReportCameraPositions* report_camera_positions = req.mutable_report_camera_positions();
-  for (int k : camera_set.GetKeys()) {
+  for (int k : camera_set_.GetKeys()) {
 
-    absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = camera_set.ComputePosition(k, apriltag_size);
+    absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = 
+      camera_set_.ComputePosition(k, apriltag_size);
 
     if (!pos.ok()) {
       LOG(ERROR) << "Could not compute camera position: " << pos.status();
@@ -240,7 +279,9 @@ int main(int argc, char* argv[]) {
   robot_vision::CameraSet camera_set;
   robot_vision::VisionSystemClient client;
   while (true) {
-    client.Run();
-    client.ReportCameraPositions(camera_set, 64.29);
+    absl::Status status = client.Run(absl::GetFlag(FLAGS_server_address));
+    if (!status.ok()) {
+      LOG(ERROR) << "Server connection finished with status: " << status;
+    }
   }
 }
