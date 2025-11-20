@@ -28,7 +28,6 @@ void SerializeCam(std::ofstream& in, const Camera& cam);
 
 Camera DeserializeCam(std::ifstream& in);
 
-
 } // namespace robot_vision
 
 #endif // CAMERA_H
