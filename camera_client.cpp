@@ -81,7 +81,7 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   std::vector<TagPoints> img_points = detector.Detect(frame);
   std::unordered_map<int, std::pair<Transformation, Transformation>> out;
   for (const TagPoints& p : img_points) {
-    std::optional<std::pair<Transformation, Transformation>> out_pos = TransformTagToCam(meta->second, p.points, apriltag_size);
+    std::optional<std::pair<Transformation, Transformation>> out_pos = GetTagInCamCoords(meta->second, p.points, apriltag_size);
     if (out_pos.has_value()) {
       out.emplace(p.id, std::move(*out_pos));
     }
@@ -117,7 +117,18 @@ void CameraSet::BuildCameraSet() {
 }
 
 void CameraSet::SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients) {
-  LOG(FATAL) << "TODO: Implement";
+  cv::Mat cam_mat = (cv::Mat_<double>(3, 3) << 
+    camera_coefficients.camera_matrix(0), camera_coefficients.camera_matrix(1), camera_coefficients.camera_matrix(2),
+    camera_coefficients.camera_matrix(3), camera_coefficients.camera_matrix(4), camera_coefficients.camera_matrix(5),
+    camera_coefficients.camera_matrix(6), camera_coefficients.camera_matrix(7), camera_coefficients.camera_matrix(8)
+  );
+  int size = camera_coefficients.distortion_coefficients_size();
+  cv::Mat dist_coef(cv::Size(1, size), CV_64F);
+  for (int i=0; i<size; ++i) {
+    dist_coef.at<double>(0, i) = camera_coefficients.distortion_coefficients(i);
+  }
+  absl::MutexLock lock{&mu_};
+  camera_metadata_.emplace(camera_id, Camera(camera_id, cam_mat, dist_coef));
 }
 
 std::vector<int> CameraSet::GetKeys() {

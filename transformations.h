@@ -14,7 +14,7 @@ class Transformation {
 
   Transformation(const cv::Mat&, const cv::Mat&);
 
-  Transformation(const cv::Vec3d&, const cv::Mat&);
+  Transformation(const cv::Mat&, const cv::Vec3d&);
 
   Transformation(): mat_{cv::Mat::eye(4, 4, CV_64F)} {}
 
@@ -46,13 +46,15 @@ class Transformation {
 
   Transformation operator-(const Transformation& other) const;
 
+  Transformation& operator=(const Transformation& other) = default;
+
  private:
   cv::Mat mat_;
 };
 
-double GetSquareDist(const cv::Vec3d& a, const cv::Vec3d& b);
+Transformation TransformationAverage(const std::vector<Transformation>& mats);
 
-cv::Mat CombineRotation(Transformation mat);
+double TransformationDifference(const Transformation& a, const Transformation& b, double rotation_weight, double translation_weight);
 
 }  // namespace robot_vision
 

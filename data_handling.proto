@@ -7,9 +7,9 @@ message CameraInTagCoords {
   repeated double mat = 2; // 4x4 matrix, [j*cols+i]
 }
 
-message CameraCoefficients {
-  repeated double camera_matrix = 1; // 3x3
-  repeated double distortion_coefficients = 2; // 1-D, variable size
+message CameraPosition {
+  int32 camera_id = 1;
+  repeated CameraInTagCoords camera_in_tag_coords = 2; // tag_id can be non-unique
 }
 
 message SetCameraCoefficients {
@@ -17,9 +17,9 @@ message SetCameraCoefficients {
   CameraCoefficients camera_coefficients = 2;
 }
 
-message CameraPosition {
-  int32 camera_id = 1;
-  repeated CameraInTagCoords camera_in_tag_coords = 2; // tag_id can be non-unique
+message CameraCoefficients {
+  repeated double camera_matrix = 1; // 3x3
+  repeated double distortion_coefficients = 2; // 1-D, variable size
 }
 
 message Telemetry {
@@ -50,12 +50,12 @@ message GetRobotPositionRequest {
 }
 
 message GetRobotPositionResponse {
-
+  repeated double mat = 1; // 4x4
 }
 
 service VisionSystem {
   // Endpoint for camera co-processors to connect to the central unit (opened by Camera unit). 
   rpc OpenControlStream(stream ClientRequest) returns (stream ServerRequest);
-  // Gets robot position in World coordinates (called by PoboRIO).
+  // Gets robot position in World coordinates (called by RoboRIO).
   rpc GetRobotPosition(GetRobotPositionRequest) returns (GetRobotPositionResponse);
 }

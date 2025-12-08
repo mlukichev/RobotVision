@@ -9,6 +9,7 @@
 #include "data_handling.grpc.pb.h"
 #include "grpcpp/server_builder.h"
 #include "vision_system.h"
+#include "transformations.h"
 #include <thread>
 
 ABSL_FLAG(std::string, server_address, "0.0.0.0:50001", "Vision system server address");
@@ -30,11 +31,9 @@ class VisionSystemImpl: public VisionSystem::Service {
   VisionSystemImpl(VisionSystemCore* vision_system_core): 
     vision_system_core_{vision_system_core} {}
 
-  Status OpenControlStream(ServerContext* context,
-                           ServerReaderWriter<ServerRequest, ClientRequest>* stream) override; 
+  Status OpenControlStream(ServerContext* context, ServerReaderWriter<ServerRequest, ClientRequest>* stream) override; 
 
-  Status GetRobotPosition(ServerContext* context,
-                           const GetRobotPositionRequest* request, GetRobotPositionResponse* response) override;
+  Status GetRobotPosition(ServerContext* context, const GetRobotPositionRequest* request, GetRobotPositionResponse* response) override;
 
   void SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients);
  private:
@@ -83,10 +82,19 @@ Status VisionSystemImpl::OpenControlStream(
   }
   return Status();
 }
+ 
+Status VisionSystemImpl::GetRobotPosition(ServerContext* context, const GetRobotPositionRequest* request, GetRobotPositionResponse* response) {
+  std::optional<Transformation> robot_position = vision_system_core_->GetRobotPosition();
+  if (!robot_position.has_value()) {
+    LOG(ERROR) << "Empty position returned from Vision System Core";
+    return Status(StatusCode::INTERNAL, "Empty position");
+  }
 
-Status VisionSystemImpl::GetRobotPosition(ServerContext* context,
-                           const GetRobotPositionRequest* request, GetRobotPositionResponse* response) {
-  return Status::OK;                           
+  for (double e : robot_position->ToVector()) {
+    response->add_mat(e);
+  }
+
+  return Status();
 }
 
 absl::Status VisionSystemImpl::SendMessage(const std::string& client, const ServerRequest& msg) {
@@ -110,7 +118,7 @@ void VisionSystemImpl::SetCameraCoefficients(int camera_id, const CameraCoeffici
     client_keys.reserve(clients_.size());
     for (const auto& [client, _] : clients_) {
       client_keys.push_back(client);
-    }
+    } 
   }
 
   ServerRequest msg;

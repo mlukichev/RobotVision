@@ -31,15 +31,15 @@ add_library(robot_vision
   camera.cpp
   transformations.cpp
   tags.cpp
-  apriltag_detector.cpp)
+  apriltag_detector.cpp
+  camera_positions.cpp)
 target_link_libraries(robot_vision PRIVATE
   apriltag
   ${OpenCV_LIBRARIES}
   absl::flags
   absl::log)
 
-add_library(vision_system
-  vision_system.cpp)
+add_library(vision_system vision_system.cpp)
 target_link_libraries(vision_system PUBLIC
   ${OpenCV_LIBRARIES}
   absl::flat_hash_map
@@ -75,13 +75,14 @@ target_link_libraries(generate_transform_matrix PRIVATE
 
 add_executable(robot_vision_server server.cpp)
 target_link_libraries(robot_vision_server PRIVATE
+  robot_vision
   vision_proto
   vision_system
   absl::flags
   absl::cleanup)
 
 add_executable(camera_client camera_client.cpp)
-target_link_libraries(camera_client
+target_link_libraries(camera_client PRIVATE
   absl::flags
   absl::log
   absl::status
@@ -90,19 +91,8 @@ target_link_libraries(camera_client
   ${OpenCV_LIBRARIES}
   
   vision_proto
-  robot_vision
-)
+  robot_vision)
 
 add_executable(find_cameras find_cameras.cpp)
 target_link_libraries(find_cameras
-  ${OpenCV_LIBRARIES}
-)
-
-# target_link_libraries(camera_handling PRIVATE 
-#   apriltag 
-#   ${OpenCV_LIBRARIES}
-#   absl::flags
-#   # grpc
-#   camera
-#   transformations
-# )
+  ${OpenCV_LIBRARIES})

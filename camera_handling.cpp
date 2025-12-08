@@ -11,12 +11,13 @@
 #include "apriltag.h"
 #include "tag36h11.h"
 #include "tags.h"
+#include "camera_positions.h"
 
 namespace robot_vision {
 
 // Finds Tranfomration from Tag coord sys to Cam coord sys
 // Apriltag size is the length of one square
-std::optional<std::pair<Transformation, Transformation>> TransformTagToCam(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
+std::optional<std::pair<Transformation, Transformation>> GetTagInCamCoords(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
   
   // half of apritag size
   double hs = apriltag_size;
@@ -55,9 +56,9 @@ std::optional<std::pair<Transformation, Transformation>> TransformTagToCam(const
 }
 
 // Returns 4D transformation: Camera -> Tag coord
-std::optional<std::pair<Transformation, Transformation>> GetCameraInTagCoords(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
+std::optional<std::pair<Transformation, Transformation>> GetCamInTagCoords(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
   // Transofrmation: Tag -> Camera coord
-  std::optional<std::pair<Transformation, Transformation>> tag_to_cam = TransformTagToCam(cam, image, apriltag_size);
+  std::optional<std::pair<Transformation, Transformation>> tag_to_cam = GetTagInCamCoords(cam, image, apriltag_size);
   if (!tag_to_cam.has_value()) {
     return std::nullopt;
   }
@@ -69,36 +70,8 @@ std::optional<std::pair<Transformation, Transformation>> GetCameraInTagCoords(co
   };
 }
 
-// cv::Mat GetRobotInCameraCoords(const Camera& cam) {
-//   Transformation inv = cam.pos.Inverse();
-//   cv::Mat adjusted = (cv::Mat_<double>(4, 4) << 
-//     -inv.at<double>(2, 0), -inv.at<double>(2, 1), -inv.at<double>(2, 2), -inv.at<double>(2, 3),
-//     -inv.at<double>(0, 0), -inv.at<double>(0, 1), -inv.at<double>(0, 2), -inv.at<double>(0, 3),
-//     inv.at<double>(1, 0), inv.at<double>(1, 1), inv.at<double>(1, 2), inv.at<double>(1, 3),
-//     0, 0, 0, 1
-//   );
-//   return adjusted;
-// }
-
-// std::optional<std::pair<cv::Mat, cv::Mat>> RobotInTagCoords(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
-//   std::optional<std::pair<Transformation, Transformation>> cam_in_tag = GetCameraInTagCoords(cam, image, apriltag_size);
-//   if (!cam_in_tag.has_value()) {
-//     return std::nullopt;
-//   }
-//   cv::Mat rob_in_cam = GetRobotInCameraCoords(cam);
-//   return std::optional(std::pair(rob_in_cam*cam_in_tag->first, rob_in_cam*cam_in_tag->second));
-// }
-
-// std::optional<std::pair<cv::Mat, cv::Mat>> RobotInWorldCoords(const Camera& cam, Tags tags, int tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
-//   std::optional<std::pair<cv::Mat, cv::Mat>> rob_in_wor = RobotInTagCoords(cam, image, apriltag_size);
-//   if (!rob_in_wor.has_value()) {
-//     return std::nullopt;
-//   }
-//   return std::optional(std::pair(rob_in_wor->first*tags.GetTagByID(tag), rob_in_wor->second*tags.GetTagByID(tag)));
-// }
-
-std::optional<std::pair<Transformation, Transformation>> GetCameraInWorldCoords(const Camera& cam, Tags tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
-  std::optional<std::pair<Transformation, Transformation>> camera_in_tag = GetCameraInTagCoords(cam, image, apriltag_size);
+std::optional<std::pair<Transformation, Transformation>> GetCamInWorldCoords(const Camera& cam, const Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
+  std::optional<std::pair<Transformation, Transformation>> camera_in_tag = GetCamInTagCoords(cam, image, apriltag_size);
   if (!camera_in_tag.has_value()) {
     return std::nullopt;
   }
@@ -108,6 +81,29 @@ std::optional<std::pair<Transformation, Transformation>> GetCameraInWorldCoords(
       tags.GetTagByID(tag) * camera_in_tag->second
     }
   );
+}
+
+Transformation GetCamInWorldCoords(const Tags& tags, TagId tag, const Transformation& camera_in_tag) {
+  return tags.GetTagByID(tag) * camera_in_tag;
+}
+
+
+std::optional<std::pair<Transformation, Transformation>> GetRobotInWorldCoords(const Camera& cam, const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const std::vector<cv::Point2d>& image, double apriltag_size) {
+  std::optional<std::pair<Transformation, Transformation>> camera_in_world = GetCamInWorldCoords(cam, tags, tag, image, apriltag_size);
+  if (!camera_in_world.has_value()) {
+    return std::nullopt;
+  }
+  return std::optional(
+    std::pair{
+      camera_in_world->first * cams.GetCameraPositionById(cam_id).Inverse(),
+      camera_in_world->second * cams.GetCameraPositionById(cam_id).Inverse()
+    }
+  );
+}
+
+std::optional<Transformation> GetRobotInWorldCoords(const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& camera_in_tag) {
+  Transformation camera_in_world = GetCamInWorldCoords(tags, tag, camera_in_tag);
+  return (camera_in_world*cams.GetCameraPositionById(cam_id).Inverse());
 }
 
 }  // namespace robot_vision
