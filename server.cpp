@@ -4,6 +4,7 @@
 
 #include "absl/cleanup/cleanup.h"
 #include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
 #include "absl/log/log.h"
 #include "data_handling.pb.h"
 #include "data_handling.grpc.pb.h"
@@ -159,7 +160,9 @@ void RunServer(VisionSystemCore* vision_system_core, const std::string& server_a
 }  // namespace
 }  // namespace robot_vision
 
-int main() {
+int main(int argc, char* argv[]) {
+  absl::ParseCommandLine(argc, argv);
+
   robot_vision::VisionSystemCore vision_system_core;
 
   robot_vision::RunServer(&vision_system_core, absl::GetFlag(FLAGS_server_address));

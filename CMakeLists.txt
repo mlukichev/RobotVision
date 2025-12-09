@@ -79,11 +79,13 @@ target_link_libraries(robot_vision_server PRIVATE
   vision_proto
   vision_system
   absl::flags
+  absl::flags_parse
   absl::cleanup)
 
 add_executable(camera_client camera_client.cpp)
 target_link_libraries(camera_client PRIVATE
   absl::flags
+  absl::flags_parse
   absl::log
   absl::status
   grpc

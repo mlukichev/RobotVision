@@ -8,6 +8,7 @@
 #include <thread>
 
 #include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -89,10 +90,10 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   return absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>>(std::move(out));
 }
 
-int GetIdFromName(const std::string& name) {
+std::optional<int> GetIdFromName(const std::string& name) {
   int loc = name.find("camera-");
   if (loc == -1) {
-    return -1;
+    return std::nullopt;
   }
   return (int)(name[loc+7]-'0');
 }
@@ -103,6 +104,10 @@ void CameraSet::BuildCameraSet() {
   captures_.clear();
   fs::path usb_directory("/dev/v4l/by-id");
   for (auto& p : fs::directory_iterator(usb_directory)) {
+    std::optional<int> camera_id = GetIdFromName(static_cast<fs::path>(p).filename());
+    if (!camera_id.has_value()) {
+      continue;
+    }
     fs::path current_camera = fs::read_symlink(p);
     std::string video_num = current_camera;
     if (video_num.find("video") != 6) {
@@ -111,8 +116,8 @@ void CameraSet::BuildCameraSet() {
     int port = (int)(video_num[11]-'0');
     std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(port));
     
-    int camera_id = GetIdFromName(static_cast<fs::path>(p).filename());
-    captures_[camera_id] = std::move(cap);
+    LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
+    captures_[*camera_id] = std::move(cap);
   }  
 }
 
@@ -135,6 +140,10 @@ std::vector<int> CameraSet::GetKeys() {
   absl::MutexLock lock{&mu_};
   std::vector<int> out;
   for (auto it=captures_.begin(); it != captures_.end(); ++it) {
+    if (camera_metadata_.find(it->first) == camera_metadata_.end()) {
+      LOG_EVERY_N_SEC(WARNING, 30) << "Camera " << it->first << " doesn't have metadata.";
+      continue;
+    }
     out.push_back(it->first);
   }
   return out;
@@ -170,7 +179,7 @@ absl::Status VisionSystemClient::Run(const std::string& server_address) {
 
   {
     absl::MutexLock lock{&mu_};
-    if (!server_.has_value()) {
+    if (server_.has_value()) {
       LOG(ERROR) << "Client is already connected.";
       return absl::InvalidArgumentError("Client already connected.");
     }
@@ -287,6 +296,7 @@ absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
 }  // namespace robot_vision
 
 int main(int argc, char* argv[]) {
+  absl::ParseCommandLine(argc, argv);
   robot_vision::CameraSet camera_set;
   robot_vision::VisionSystemClient client;
   while (true) {
