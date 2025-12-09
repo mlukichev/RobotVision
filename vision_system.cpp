@@ -57,20 +57,25 @@ std::optional<Transformation> CombineTransformations(const std::vector<Transform
 }
 
 std::optional<Transformation> VisionSystemCore::GetRobotPosition() {
-  std::vector<Transformation> mats;
+  std::vector<std::pair<int, std::pair<int, Transformation>>> mats;
   mats.reserve(estimated_positions_);
   {
     absl::MutexLock{&mu_};
     for (auto [cam_id, m] : camera_in_tag_coords_) {
       for (auto [tag_id, camera_in_tag] : m) {
-        mats.push_back(GetRobotInWorldCoords(tags_, tag_id, camera_positions_, cam_id, camera_in_tag));
+        mats.push_back(std::pair(cam_id, std::pair(tag_id, camera_in_tag)));
       }
     }
+  }
+  std::vector<Transformation> sols;
+  sols.reserve(mats.size()+1);
+  for (int i=0; i<mats.size(); ++i) {
+    sols.push_back(GetRobotInWorldCoords(tags_, mats[i].second.first, camera_positions_, mats[i].first, mats[i].second.second));
   }
   if (mats.empty()) {
     return std::nullopt;
   }
-  return CombineTransformations(mats, max_cluster_diameter_);
+  return CombineTransformations(sols, max_cluster_diameter_);
 }
 
 }  // namespace robot_vision
