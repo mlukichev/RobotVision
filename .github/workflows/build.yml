@@ -1,0 +1,40 @@
+name: build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    steps:
+    - name: clone
+      run: |
+        sudo apt install -y cmake build-essential python3.12 python3.12-venv pkg-config
+        git clone https://github.com/mlukichev/RobotVision.git --depth=1
+        cd RobotVision
+        cd third_party/
+        rm -rf apriltag
+        git clone https://github.com/AprilRobotics/apriltag.git --depth=1
+        cd ..
+    - name: venv/conan 
+      run: |
+        python3 -m venv .venv
+        source .venv/bin/activate
+        python -m pip install conan
+        conan profile detect --force
+    - name: conan install
+      run: |
+        conan install . --output-folder=build --build=missing -c tools.system.package_manager:mode=install -c tools.system.package_manager:sudo=True -c tools.system.package_manager:tool=apt-get
+    - name: cmake
+      run: |
+        cmake -B build --preset conan-release
+        cmake --build --preset conan-release
+    - name: artifact
+      run: |
+        mkdir -p binaries
+        find build/ -type f -executable -exec cp {} binaries/ \;
+        tar -czvf binaries.tar.gz binaries/*
+    - uses: actions/upload-artifact@v4
+      with:
+        path: binaries.tar.gz
