@@ -1,0 +1,69 @@
+name: RobotVision CI Build
+
+on:
+  # Triggers the workflow on push or pull request events to the 'main' branch
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Use an Ubuntu runner for the environment described in the README (apt-get)
+    runs-on: ubuntu-latest
+    
+    # Define the steps for the job
+    steps:
+    
+    - name: Checkout Repository
+      # Standard action to check out your code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      # Set up Python (required for conan and virtual environment)
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        
+    - name: Install Conan and Dependencies
+      run: |
+        # 1. Create and activate a virtual environment as per README
+        python3 -m venv .venv
+        source .venv/bin/activate
+        
+        # 2. Install conan globally within the virtual environment
+        python -m pip install conan
+        
+        # 3. Configure conan
+        conan profile detect --force
+        
+        # 4. Install project dependencies (using apt-get as suggested in README)
+        # Note: We need to use sudo on the GitHub Actions runner
+        conan install . \
+          --output-folder=build \
+          --build=missing \
+          -c tools.system.package_manager:mode=install \
+          -c tools.system.package_manager:sudo=True \
+          -c tools.system.package_manager:tool=apt-get
+
+    - name: Configure and Build Project
+      # This step uses the dependencies installed in the previous step and the 'build' directory
+      # We re-activate the environment just to be safe, though conan might be path-accessible
+      run: |
+        source .venv/bin/activate
+        
+        # Generate makefiles using conan toolchain
+        cmake -B build --preset conan-release
+        
+        # Run the build
+        cmake --build build --preset conan-release
+
+    - name: Upload Build Artifacts (Optional)
+      # This step saves the resulting build files for later use or inspection
+      uses: actions/upload-artifact@v4
+      with:
+        name: robotvision-build-artifacts
+        path: build/ # Adjust this path if the actual executable is in a subdirectory
+        retention-days: 7
