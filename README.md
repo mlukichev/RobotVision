@@ -32,10 +32,15 @@ Install and configure conan:
 ## Install Dependencies
 
 This step ensures the dependencies are available. Any time `conanfile.txt` is changed, the
-dependencies will need to be updated with the command below:
+dependencies will need to be updated with the command below (example for Ubuntu):
 
 ```
-conan install . --output-folder=build --build=missing
+conan install . \
+  --output-folder=build \
+  --build=missing \
+  -c tools.system.package_manager:mode=install \
+  -c tools.system.package_manager:sudo=True \
+  -c tools.system.package_manager:tool=apt-get
 ```
 
 ## Build the Project
