@@ -262,10 +262,15 @@ absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
   ClientRequest req;
   std::unordered_map<int, std::vector<Transformation>> out;
   robot_vision::ReportCameraPositions* report_camera_positions = req.mutable_report_camera_positions();
+  std::string keys;
+  for (int e : camera_set_.GetKeys()) {
+    keys += e;
+    keys += ", ";
+  }
+  LOG(INFO) << "Cameras: " << keys;
   for (int k : camera_set_.GetKeys()) {
-
-    absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = 
-      camera_set_.ComputePosition(k, apriltag_size);
+    LOG(INFO) << "Start processing camera: " << k;
+    absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = camera_set_.ComputePosition(k, apriltag_size);
 
     if (!pos.ok()) {
       LOG(ERROR) << "Could not compute camera position: " << pos.status();
