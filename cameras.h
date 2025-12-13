@@ -16,6 +16,7 @@ class Cameras {
   Cameras();
   bool CameraExists(CamId tag) const;
   Camera GetCameraByID(CamId tag) const;
+  std::vector<int> GetKeys() const;
    
  private:
   std::unordered_map<int, Camera> cameras_;

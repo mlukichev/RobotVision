@@ -118,7 +118,8 @@ void CameraSet::BuildCameraSet() {
     
     LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
     captures_[*camera_id] = std::move(cap);
-  }  
+  }
+  LOG(INFO) << "Captures size: " << captures_.size();
 }
 
 void CameraSet::SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients) {
@@ -262,14 +263,7 @@ absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
   ClientRequest req;
   std::unordered_map<int, std::vector<Transformation>> out;
   robot_vision::ReportCameraPositions* report_camera_positions = req.mutable_report_camera_positions();
-  std::string keys;
-  for (int e : camera_set_.GetKeys()) {
-    keys += e;
-    keys += ", ";
-  }
-  LOG(INFO) << "Cameras: " << keys;
   for (int k : camera_set_.GetKeys()) {
-    LOG(INFO) << "Start processing camera: " << k;
     absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = camera_set_.ComputePosition(k, apriltag_size);
 
     if (!pos.ok()) {

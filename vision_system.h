@@ -19,6 +19,7 @@ class VisionSystemCore {
   absl::Status ReportCameraPosition(const CameraPosition& camera_position);
   std::optional<Transformation> GetRobotPosition();
   std::optional<std::pair<cv::Mat, cv::Mat>> GetCameraById(int id);
+  std::vector<int> GetKeys();
 
  private:
   absl::Mutex mu_;

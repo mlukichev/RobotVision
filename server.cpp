@@ -132,14 +132,14 @@ void VisionSystemImpl::SetCameraCoefficients(int camera_id, const CameraCoeffici
   ServerRequest msg;
   auto* set_camera_coefficients = msg.mutable_set_camera_coefficients();
   set_camera_coefficients->set_camera_id(camera_id);
-  CameraCoefficients* camera_coefficients = set_camera_coefficients->mutable_camera_coefficients();
+  CameraCoefficients* cam_coefficients = set_camera_coefficients->mutable_camera_coefficients();
   for (int i=0; i<3; ++i) {
     for (int j=0; j<3; ++j) {
-      camera_coefficients->add_camera_matrix((*cams).first.at<double>(i, j));
+      cam_coefficients->add_camera_matrix(cams->first.at<double>(i, j));
     }
   }
-  for (int i=0; i<(*cams).second.cols; ++i) {
-    camera_coefficients->add_distortion_coefficients((*cams).second.at<double>(0, i));
+  for (int i=0; i<cams->second.cols; ++i) {
+    cam_coefficients->add_distortion_coefficients(cams->second.at<double>(0, i));
   }
   // TODO copy protobuf set_camera_coefficients->
   // TODO use lock for clients_
@@ -163,9 +163,9 @@ void RunServer(VisionSystemCore* vision_system_core, const std::string& server_a
 
 
   std::thread set_camera_coefficients([&]() {
-    // for () {
-    //   service.SetCameraCoefficients()
-    // }
+    for (int e : vision_system_core->GetKeys()) {
+      service.SetCameraCoefficients(e, );
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   });
 

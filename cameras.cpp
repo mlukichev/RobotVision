@@ -28,4 +28,12 @@ Camera Cameras::GetCameraByID(CamId camera) const {
   return it->second;
 }
 
+std::vector<int> Cameras::GetKeys() const {
+  std::vector<int> out;
+  for (auto [e, _] : cameras_) {
+    out.push_back(e);
+  }
+  return out;
+}
+
 }

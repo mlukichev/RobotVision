@@ -88,4 +88,8 @@ std::optional<std::pair<cv::Mat, cv::Mat>> VisionSystemCore::GetCameraById(int i
   return std::pair(cam.GetCamMat(), cam.GetDistCoef());
 }
 
+std::vector<int> VisionSystemCore::GetKeys() {
+  return cameras_.GetKeys();
+}
+
 }  // namespace robot_vision
