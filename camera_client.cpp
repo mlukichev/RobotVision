@@ -115,9 +115,12 @@ void CameraSet::BuildCameraSet() {
     }
     int port = (int)(video_num[11]-'0');
     std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(port));
-    
-    LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
-    captures_[*camera_id] = std::move(cap);
+    if (cap->isOpened()) {
+      LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
+      captures_[*camera_id] = std::move(cap);
+    } else {
+      LOG(WARNING) << "Port " << port << " cannot be opened";
+    }
   }
   LOG(INFO) << "Captures size: " << captures_.size();
 }
