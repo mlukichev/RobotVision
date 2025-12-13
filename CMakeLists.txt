@@ -32,7 +32,8 @@ add_library(robot_vision
   transformations.cpp
   tags.cpp
   apriltag_detector.cpp
-  camera_positions.cpp)
+  camera_positions.cpp
+  cameras.cpp)
 target_link_libraries(robot_vision PRIVATE
   apriltag
   ${OpenCV_LIBRARIES}

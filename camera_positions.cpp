@@ -7,12 +7,12 @@
 namespace robot_vision {
 
 CameraPositions::CameraPositions() {
-  // camera_positions_[0] = Transformation((cv::Mat_<double>(4, 4) << 
-  //   0, 0, -1, 0,
-  //   1, 0, 0, 0,
-  //   0, -1, 0, 0,
-  //   0, 0, 0, 1
-  // ));
+  camera_positions_[0] = Transformation((cv::Mat_<double>(4, 4) << 
+    0, 0, -1, 0,
+    1, 0, 0, 0,
+    0, -1, 0, 0,
+    0, 0, 0, 1
+  ));
   // camera_positions_[1] = Transformation((cv::Mat_<double>(4, 4) << 
   //   1, 0, 0, 248.92,
   //   0, 0, 1, 1022.35,

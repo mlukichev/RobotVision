@@ -6,6 +6,8 @@
 #include "tags.h"
 #include "camera_positions.h"
 #include "camera_handling.h"
+#include "camera.h"
+#include "cameras.h"
 
 namespace robot_vision {
 
@@ -76,6 +78,14 @@ std::optional<Transformation> VisionSystemCore::GetRobotPosition() {
     return std::nullopt;
   }
   return CombineTransformations(sols, max_cluster_diameter_);
+}
+
+std::optional<std::pair<cv::Mat, cv::Mat>> VisionSystemCore::GetCameraById(int id) {
+  if (!cameras_.CameraExists(id)) {
+    return std::nullopt;
+  }
+  Camera cam = cameras_.GetCameraByID(id);
+  return std::pair(cam.GetCamMat(), cam.GetDistCoef());
 }
 
 }  // namespace robot_vision

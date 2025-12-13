@@ -113,6 +113,12 @@ absl::Status VisionSystemImpl::SendMessage(const std::string& client, const Serv
 }
 
 void VisionSystemImpl::SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients) {
+  const std::optional<std::pair<cv::Mat, cv::Mat>>& cams = vision_system_core_->GetCameraById(camera_id);
+  if (!cams.has_value()) {
+    LOG(ERROR) << "Camera " << camera_id << " does not have metadata";
+    return;
+  }
+
   std::vector<std::string> client_keys;
   {
     absl::MutexLock lock{&mu_};
@@ -125,6 +131,15 @@ void VisionSystemImpl::SetCameraCoefficients(int camera_id, const CameraCoeffici
   ServerRequest msg;
   auto* set_camera_coefficients = msg.mutable_set_camera_coefficients();
   set_camera_coefficients->set_camera_id(camera_id);
+  CameraCoefficients* camera_coefficients = set_camera_coefficients->mutable_camera_coefficients();
+  for (int i=0; i<3; ++i) {
+    for (int j=0; j<3; ++j) {
+      camera_coefficients->add_camera_matrix((*cams).first.at<double>(i, j));
+    }
+  }
+  for (int i=0; i<(*cams).second.cols; ++i) {
+    camera_coefficients->add_distortion_coefficients((*cams).second.at<double>(0, i));
+  }
   // TODO copy protobuf set_camera_coefficients->
   // TODO use lock for clients_
   for (const std::string& client : client_keys) {

@@ -101,7 +101,7 @@ std::optional<std::pair<Transformation, Transformation>> GetRobotInWorldCoords(c
   );
 }
 
-std::optional<Transformation> GetRobotInWorldCoords(const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& camera_in_tag) {
+Transformation GetRobotInWorldCoords(const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& camera_in_tag) {
   Transformation camera_in_world = GetCamInWorldCoords(tags, tag, camera_in_tag);
   return (camera_in_world*cams.GetCameraPositionById(cam_id).Inverse());
 }
