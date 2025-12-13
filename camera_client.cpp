@@ -233,9 +233,11 @@ absl::Status VisionSystemClient::Run(const std::string& server_address) {
     }
   }
 
-  absl::MutexLock lock{&threads_mutex};
-  stop = true;
-  cv.SignalAll();
+  {
+    absl::MutexLock lock{&threads_mutex};
+    stop = true;
+    cv.SignalAll();
+  }
 
   report_camera_positions.join();
   build_camera_set.join();

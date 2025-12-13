@@ -36,7 +36,7 @@ class VisionSystemImpl: public VisionSystem::Service {
 
   Status GetRobotPosition(ServerContext* context, const GetRobotPositionRequest* request, GetRobotPositionResponse* response) override;
 
-  void SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients);
+  void SetCameraCoefficients(int camera_id);
  private:
   absl::Status SendMessage(const std::string& client, const ServerRequest& msg);
 
@@ -111,9 +111,11 @@ absl::Status VisionSystemImpl::SendMessage(const std::string& client, const Serv
     LOG(ERROR) << "SendMessage: Write failed to client: " << client;
     return absl::InternalError("Write failed");
   }
+
+  return absl::OkStatus();
 }
 
-void VisionSystemImpl::SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients) {
+void VisionSystemImpl::SetCameraCoefficients(int camera_id) {
   const std::optional<std::pair<cv::Mat, cv::Mat>>& cams = vision_system_core_->GetCameraById(camera_id);
   if (!cams.has_value()) {
     LOG(ERROR) << "Camera " << camera_id << " does not have metadata";
@@ -160,18 +162,34 @@ void RunServer(VisionSystemCore* vision_system_core, const std::string& server_a
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
   std::unique_ptr<Server> server(builder.BuildAndStart());
-
+  
+  absl::Mutex threads_mutex;
+  std::atomic<bool> stop{false};
+  absl::CondVar cv;
 
   std::thread set_camera_coefficients([&]() {
-    for (int e : vision_system_core->GetKeys()) {
-      CameraCoefficients a;
-      service.SetCameraCoefficients(e, a);
+    absl::MutexLock lock{&threads_mutex};
+    while (!stop) {
+      cv.WaitWithTimeout(&threads_mutex, absl::Milliseconds(1000));
+      if (!stop) {
+        for (int e : vision_system_core->GetKeys()) {
+          service.SetCameraCoefficients(e);
+        }
+      }
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   });
 
   LOG(INFO) << "Server listening on " << server_address;
   server->Wait();
+
+  {
+    absl::MutexLock lock{&threads_mutex};
+    stop = true;
+    cv.SignalAll();
+  }
+
+  set_camera_coefficients.join();
+
 }
 
 }  // namespace

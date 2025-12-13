@@ -81,6 +81,7 @@ std::optional<Transformation> VisionSystemCore::GetRobotPosition() {
 }
 
 std::optional<std::pair<cv::Mat, cv::Mat>> VisionSystemCore::GetCameraById(int id) {
+  absl::MutexLock lock{&mu_};
   if (!cameras_.CameraExists(id)) {
     return std::nullopt;
   }
@@ -89,6 +90,7 @@ std::optional<std::pair<cv::Mat, cv::Mat>> VisionSystemCore::GetCameraById(int i
 }
 
 std::vector<int> VisionSystemCore::GetKeys() {
+  absl::MutexLock lock{&mu_};
   return cameras_.GetKeys();
 }
 
