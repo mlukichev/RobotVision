@@ -69,6 +69,7 @@ Status VisionSystemImpl::OpenControlStream(
   while (stream->Read(&req)) {
     switch (req.msg_case()) {
     case ClientRequest::kReportCameraPositions:
+      LOG_EVERY_N_SEC(INFO, 10) << "ReportCameraPositions: " << req.DebugString();
       for (const CameraPosition& pos : req.report_camera_positions().camera_position()) {
         absl::Status status = vision_system_core_->ReportCameraPosition(pos);
         if (!status.ok()) {
@@ -178,7 +179,7 @@ void RunServer(VisionSystemCore* vision_system_core, const std::string& server_a
 int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
 
-  robot_vision::VisionSystemCore vision_system_core;
+  robot_vision::VisionSystemCore vision_system_core(127, 2);
 
   robot_vision::RunServer(&vision_system_core, absl::GetFlag(FLAGS_server_address));
 }
