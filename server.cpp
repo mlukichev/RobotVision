@@ -164,7 +164,8 @@ void RunServer(VisionSystemCore* vision_system_core, const std::string& server_a
 
   std::thread set_camera_coefficients([&]() {
     for (int e : vision_system_core->GetKeys()) {
-      service.SetCameraCoefficients(e, );
+      CameraCoefficients a;
+      service.SetCameraCoefficients(e, a);
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   });
