@@ -56,7 +56,7 @@ Status VisionSystemImpl::OpenControlStream(
     auto [_, inserted] = clients_.try_emplace(context->peer(), stream);
     if (!inserted) {
       LOG(ERROR) << "Client " << context->peer() << " already connected.";
-      return Status(StatusCode::INVALID_ARGUMENT, "Client already connected.");
+      return Status(StatusCode::INVALID_ARGUMENT, "Client already connected. ");
     }
   }
 

@@ -63,7 +63,7 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
 
   auto cap = captures_.find(cam_id);
 
-  LOG(INFO) << "Calculating position for camera " << cam_id;
+  LOG(INFO) << "Calculating position for camera  " << cam_id;
 
   if (cap == captures_.end()) {
     LOG(ERROR) << "Camera with id " << cam_id << " does not have an opened capture";
