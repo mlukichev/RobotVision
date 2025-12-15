@@ -23,6 +23,7 @@
 #include "apriltag_detector.h"
 #include "apriltag_detector.h"
 #include "tag_detector.h"
+#include "cameras.h"
 
 ABSL_FLAG(std::string, server_address, "10.0.0.1:50001", "Server address");
 
@@ -53,7 +54,8 @@ class CameraSet {
  private:
   absl::Mutex mu_;
   std::unordered_map<int, std::unique_ptr<cv::VideoCapture>> captures_; // ID to VideoCapture
-  std::unordered_map<int, Camera> camera_metadata_; // ID to Camera metadata
+  // std::unordered_map<int, Camera> camera_metadata_; // ID to Camera metadata
+  Cameras cameras_;
 };
 
 absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> CameraSet::ComputePosition(int cam_id, double apriltag_size) {
@@ -61,14 +63,14 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
 
   auto cap = captures_.find(cam_id);
 
+  LOG(INFO) << "Calculating position for camera " << cam_id;
+
   if (cap == captures_.end()) {
     LOG(ERROR) << "Camera with id " << cam_id << " does not have an opened capture";
     return absl::InvalidArgumentError("Camera id does not have an opened capture");
   }
 
-  auto meta = camera_metadata_.find(cam_id);
-
-  if (meta == camera_metadata_.end()) {
+  if (!cameras_.CameraExists(cam_id)) {
     LOG(ERROR) << "Camera with id " << cam_id << " does not have metadata";
     return absl::InvalidArgumentError("Camera id does not have metadata");
   }
@@ -78,11 +80,14 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
     LOG(ERROR) << "Could not read frame for camera id " << cam_id;
     return absl::InternalError("Could not read from camera");
   }
+
   ApriltagDetector detector;
   std::vector<TagPoints> img_points = detector.Detect(frame);
+  LOG(INFO) << "Image Points: " << img_points.size();
+  cv::imshow("cam-out", frame);
   std::unordered_map<int, std::pair<Transformation, Transformation>> out;
   for (const TagPoints& p : img_points) {
-    std::optional<std::pair<Transformation, Transformation>> out_pos = GetTagInCamCoords(meta->second, p.points, apriltag_size);
+    std::optional<std::pair<Transformation, Transformation>> out_pos = GetTagInCamCoords(cameras_.GetCameraByID(cam_id), p.points, apriltag_size);
     if (out_pos.has_value()) {
       out.emplace(p.id, std::move(*out_pos));
     }
@@ -123,6 +128,14 @@ void CameraSet::BuildCameraSet() {
     }
   }
   LOG(INFO) << "Captures size: " << captures_.size();
+  cv::Mat frame;
+  captures_[2]->read(frame);
+  // for (auto& e : captures_) {
+  //   cv::Mat frame;
+  //   e.second->read(frame);
+  //   cv::imshow(std::to_string(e.first), frame);
+  //   cv::waitKey(0);
+  // }
 }
 
 void CameraSet::SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients) {
@@ -137,14 +150,14 @@ void CameraSet::SetCameraCoefficients(int camera_id, const CameraCoefficients& c
     dist_coef.at<double>(0, i) = camera_coefficients.distortion_coefficients(i);
   }
   absl::MutexLock lock{&mu_};
-  camera_metadata_.emplace(camera_id, Camera(camera_id, cam_mat, dist_coef));
+  //camera_metadata_.emplace(camera_id, Camera(camera_id, cam_mat, dist_coef));
 }
 
 std::vector<int> CameraSet::GetKeys() {
   absl::MutexLock lock{&mu_};
   std::vector<int> out;
   for (auto it=captures_.begin(); it != captures_.end(); ++it) {
-    if (camera_metadata_.find(it->first) == camera_metadata_.end()) {
+    if (!cameras_.CameraExists(it->first)) {
       LOG_EVERY_N_SEC(WARNING, 30) << "Camera " << it->first << " doesn't have metadata.";
       continue;
     }
