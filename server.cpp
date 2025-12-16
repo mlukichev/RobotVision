@@ -56,7 +56,7 @@ Status VisionSystemImpl::OpenControlStream(
     auto [_, inserted] = clients_.try_emplace(context->peer(), stream);
     if (!inserted) {
       LOG(ERROR) << "Client " << context->peer() << " already connected.";
-      return Status(StatusCode::INVALID_ARGUMENT, "Client already connected. ");
+      return Status(StatusCode::INVALID_ARGUMENT, "Client already connected.");
     }
   }
 
@@ -68,15 +68,29 @@ Status VisionSystemImpl::OpenControlStream(
   ClientRequest req;
   while (stream->Read(&req)) {
     switch (req.msg_case()) {
-    case ClientRequest::kReportCameraPositions:
-      LOG_EVERY_N_SEC(INFO, 10) << "ReportCameraPositions: " << req.DebugString();
+    case ClientRequest::kReportCameraPositions: {
+      // LOG_EVERY_N_SEC(INFO, 1) << "ReportCameraPositions: " << req.DebugString();
+      std::string data = "";
+      for (const auto& camera_position : req.report_camera_positions().camera_position()) {
+        int cam_id = camera_position.camera_id();
+        data += "Camera: " + std::to_string(cam_id) + "\n";
+        for (const auto& camera_in_tag_coords : camera_position.camera_in_tag_coords()) {
+          std::string row = "[";
+          for (int j=0; j<4; ++j) {
+            row += " " + std::to_string(camera_in_tag_coords.mat(j*4+3));
+          }
+          row += "]";
+          data += row + "\n";
+        }
+      }
+      LOG_EVERY_N_SEC(INFO, 1) << data;
       for (const CameraPosition& pos : req.report_camera_positions().camera_position()) {
         absl::Status status = vision_system_core_->ReportCameraPosition(pos);
         if (!status.ok()) {
           LOG(WARNING) << "Error processing ReportCameraPosition request: " << status;
         }
       }
-      break;
+    } break;
     default:
       LOG(WARNING) << "Dropping unrecognized message: " << req.DebugString();
       break;

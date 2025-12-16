@@ -1,28 +1,28 @@
-// #include <iostream>
-// #include <opencv2/opencv.hpp>
-// #include <optional>
-// #include <fstream>
-// #include <chrono>
-// #include <thread>
-// #include <numeric>
+#include <iostream>
+#include <opencv2/opencv.hpp>
+#include <optional>
+#include <fstream>
+#include <chrono>
+#include <thread>
+#include <numeric>
 
-// #include "camera.h"
-// #include "transformations.h"
-// #include "apriltag_detector.h"
+#include "camera.h"
+#include "transformations.h"
+#include "apriltag_detector.h"
 
-// #include "apriltag.h"
-// #include "tag36h11.h"
-// #include "camera_handling.h"
-// #include "absl/log/log.h"
-// #include "absl/log/check.h"
+#include "apriltag.h"
+#include "tag36h11.h"
+#include "camera_handling.h"
+#include "absl/log/log.h"
+#include "absl/log/check.h"
 
-// namespace {
+namespace {
 
-// using robot_vision::Camera;
-// using robot_vision::Tags;
-// using robot_vision::Transformation;
-// using robot_vision::ApriltagDetector;
-// using robot_vision::TagPoints;
+using robot_vision::Camera;
+using robot_vision::Tags;
+using robot_vision::Transformation;
+using robot_vision::ApriltagDetector;
+using robot_vision::TagPoints;
 // using robot_vision::GetCameraInTagCoords;
 // using robot_vision::GetSquareDist;
 // using robot_vision::CombineRotation;
@@ -91,79 +91,75 @@
 //   }
 // }
 
-// constexpr char famname[] = "tag36h11";
+constexpr char famname[] = "tag36h11";
 
-// void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
-//   cv::TickMeter meter;
-//   meter.start();
+void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
+  cv::TickMeter meter;
+  meter.start();
 
-//   cv::VideoCapture cap(0);
-//   CHECK(cap.isOpened()) << "Couldn't open video capture device.";
+  cv::VideoCapture cap(3);
+  CHECK(cap.isOpened()) << "Couldn't open video capture device.";
 
-//   ApriltagDetector detector;
+  ApriltagDetector detector;
 
-//   meter.stop();
-//   LOG(INFO) << "Detector " << famname << " initialized in " << std::fixed << std::setprecision(3) << meter.getTimeSec() << " seconds.";
-//   meter.reset();
+  meter.stop();
+  LOG(INFO) << "Detector " << famname << " initialized in " << std::fixed << std::setprecision(3) << meter.getTimeSec() << " seconds.";
+  meter.reset();
 
-//   // std::cout << "Enter any key to begin calculation" << std::endl;
-//   // cv::waitKey(0);
+  // std::cout << "Enter any key to begin calculation" << std::endl;
+  // cv::waitKey(0);
 
-//   int cnt = 0;
-//   cv::Mat frame, gray;
-//   // Main Loop
-//   while (true) {
-//     cap.read(frame);
+  int cnt = 0;
+  cv::Mat frame;
+  // Main Loop
+  while (true) {
+    cap.read(frame);
 
-//     meter.start();
-//     cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-//     std::vector<TagPoints> out = detector.Detect(gray);
-//     meter.stop();
-//     LOG(INFO) << "Apriltag Finding: " << meter.getTimeSec() << " sec";
-//     meter.reset();
+    meter.start();
+    std::vector<TagPoints> out = detector.Detect(frame);
+    meter.stop();
+    LOG(INFO) << "Apriltag Finding: " << meter.getTimeSec() << " sec";
+    meter.reset();
 
-//     // cv::line(frame, cv::Point2i(0, 0), cv::Point2i(frame.cols-1, frame.rows-1), cv::Scalar(0, 255, 0), 2);
-//     // cv::line(frame, cv::Point2i(frame.cols-1, 0), cv::Point2i(0, frame.rows-1), cv::Scalar(0, 255, 0), 2);
+    // cv::line(frame, cv::Point2i(0, 0), cv::Point2i(frame.cols-1, frame.rows-1), cv::Scalar(0, 255, 0), 2);
+    // cv::line(frame, cv::Point2i(frame.cols-1, 0), cv::Point2i(0, frame.rows-1), cv::Scalar(0, 255, 0), 2);
 
-//     std::vector<Transformation> sols;
-//     for (int i=0; i<out.size(); ++i) {
-//       std::optional<std::pair<Transformation, Transformation>> pos1 = GetCameraInWorldCoords(cam, tags, out[i].id, out[i].points, 64.29);
-//       if (!pos1.has_value()) {
-//         LOG(INFO) << "No Tags Found In Detection " << i << ".";
-//         continue;
-//       }
-//       LOG(INFO) << "Tag " << out[i].id << " | Solution 1:\n " << std::fixed << std::setprecision(2) << pos1->first.Self();
-//       LOG(INFO) << "Tag " << out[i].id << " | Solution 2:\n" << std::fixed << std::setprecision(2) << pos1->second.Self();
-//       sols.push_back(pos1->first);
-//       sols.push_back(pos1->second);
+    // std::vector<Transformation> sols;
+    // for (int i=0; i<out.size(); ++i) {
+    //   std::optional<std::pair<Transformation, Transformation>> pos1 = GetCameraInWorldCoords(cam, tags, out[i].id, out[i].points, 64.29);
+    //   if (!pos1.has_value()) {
+    //     LOG(INFO) << "No Tags Found In Detection " << i << ".";
+    //     continue;
+    //   }
+    //   LOG(INFO) << "Tag " << out[i].id << " | Solution 1:\n " << std::fixed << std::setprecision(2) << pos1->first.Self();
+    //   LOG(INFO) << "Tag " << out[i].id << " | Solution 2:\n" << std::fixed << std::setprecision(2) << pos1->second.Self();
+    //   sols.push_back(pos1->first);
+    //   sols.push_back(pos1->second);
 
-//       cv::line(frame, out[i].points[0], out[i].points[1], cv::Scalar(255, 0, 0), 2);
-//       cv::line(frame, out[i].points[1], out[i].points[2], cv::Scalar(255, 0, 0), 2);
-//       cv::line(frame, out[i].points[2], out[i].points[3], cv::Scalar(255, 0, 0), 2);
-//       cv::line(frame, out[i].points[3], out[i].points[0], cv::Scalar(255, 0, 0), 2);
+    //   cv::line(frame, out[i].points[0], out[i].points[1], cv::Scalar(255, 0, 0), 2);
+    //   cv::line(frame, out[i].points[1], out[i].points[2], cv::Scalar(255, 0, 0), 2);
+    //   cv::line(frame, out[i].points[2], out[i].points[3], cv::Scalar(255, 0, 0), 2);
+    //   cv::line(frame, out[i].points[3], out[i].points[0], cv::Scalar(255, 0, 0), 2);
 
-//     }
-//     std::optional<Transformation> best = GetBestFit(sols, 1000);
-//     if (best.has_value()) {
-//       LOG(INFO) << "Best Solution\n" << (*best).Self();
-//     }
+    // }
+    // std::optional<Transformation> best = GetBestFit(sols, 1000);
+    // if (best.has_value()) {
+    //   LOG(INFO) << "Best Solution\n" << (*best).Self();
+    // }
 
-//     cv::imshow("Position Detection", frame);
+    cv::imshow("Position Detection", frame);
 
-//     cv::waitKey(100);
-//   }
-// }
+    cv::waitKey(100);
+  }
+}
 
-// }  // namespace
+}  // namespace
 
-
-// int main() {
-//   // std::ifstream in("a.out");
-//   // robot_vision::Camera cam = robot_vision::DeserializeCam(in);
-//   // robot_vision::Tags tags;
-//   // GetRobotPositionTest(cam, tags);
-// }
 
 int main() {
-  
+  std::ifstream in("a.out");
+  robot_vision::Camera cam = robot_vision::DeserializeCam(in);
+  robot_vision::Tags tags;
+  GetRobotPositionTest(cam, tags);
 }
+

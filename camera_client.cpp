@@ -46,6 +46,7 @@ class CameraSet {
  public:
   void BuildCameraSet();
   void SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients);
+  void TestReading(int camera_id);
 
   absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> ComputePosition(int cam_id, double apriltag_size);
 
@@ -58,12 +59,15 @@ class CameraSet {
   Cameras cameras_;
 };
 
+void CameraSet::TestReading(int camera_id) {
+  cv::Mat frame;
+  captures_[camera_id]->read(frame);
+}
+
 absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> CameraSet::ComputePosition(int cam_id, double apriltag_size) {
   absl::MutexLock lock{&mu_};
 
   auto cap = captures_.find(cam_id);
-
-  LOG(INFO) << "Calculating position for camera  " << cam_id;
 
   if (cap == captures_.end()) {
     LOG(ERROR) << "Camera with id " << cam_id << " does not have an opened capture";
@@ -83,8 +87,10 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
 
   ApriltagDetector detector;
   std::vector<TagPoints> img_points = detector.Detect(frame);
-  LOG(INFO) << "Image Points: " << img_points.size();
-  cv::imshow("cam-out", frame);
+
+  // cv::imshow("camid", frame);
+  // cv::waitKey(30);
+
   std::unordered_map<int, std::pair<Transformation, Transformation>> out;
   for (const TagPoints& p : img_points) {
     std::optional<std::pair<Transformation, Transformation>> out_pos = GetTagInCamCoords(cameras_.GetCameraByID(cam_id), p.points, apriltag_size);
@@ -128,14 +134,6 @@ void CameraSet::BuildCameraSet() {
     }
   }
   LOG(INFO) << "Captures size: " << captures_.size();
-  cv::Mat frame;
-  captures_[2]->read(frame);
-  // for (auto& e : captures_) {
-  //   cv::Mat frame;
-  //   e.second->read(frame);
-  //   cv::imshow(std::to_string(e.first), frame);
-  //   cv::waitKey(0);
-  // }
 }
 
 void CameraSet::SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients) {
@@ -230,7 +228,10 @@ absl::Status VisionSystemClient::Run(const std::string& server_address) {
     while (!stop) {
       cv.WaitWithTimeout(&threads_mutex, absl::Seconds(10));
       if (!stop) {
+        LOG(INFO) << "Start building CameraSet";
         camera_set_.BuildCameraSet();
+        LOG(INFO) << "Built CameraSet";
+        // camera_set_.TestReading(2);
       }
     }
   }); 

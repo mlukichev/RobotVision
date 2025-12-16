@@ -15,7 +15,7 @@ struct TagPoints {
 class TagDetector {
  public:
   virtual ~TagDetector() {}
-  virtual std::vector<TagPoints> Detect(const cv::Mat& frame) = 0;
+  virtual std::vector<TagPoints> Detect(cv::Mat& frame) = 0;
 };
 
 }  // namespace robot_vision

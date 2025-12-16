@@ -6,6 +6,8 @@ opencv/4.12.0
 
 [options]
 opencv/*:with_v4l=True
+opencv/*:with_wayland=False
+opencv/*:with_gtk=True
 
 [tool_requires]
 protobuf/3.21.12

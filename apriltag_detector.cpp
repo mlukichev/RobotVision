@@ -32,11 +32,14 @@ ApriltagDetector::~ApriltagDetector() {
   tag36h11_destroy(tf_);
 }
 
-std::vector<TagPoints> ApriltagDetector::Detect(const cv::Mat& frame) {
+std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame) {
   errno = 0;
   std::vector<TagPoints> images;
 
-  image_u8_t im = {frame.cols, frame.rows, frame.cols, frame.data};
+  cv::Mat gray;
+  cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+
+  image_u8_t im = {gray.cols, gray.rows, gray.cols, gray.data};
 
   zarray_t *detections = apriltag_detector_detect(td_, &im);
 
@@ -47,6 +50,14 @@ std::vector<TagPoints> ApriltagDetector::Detect(const cv::Mat& frame) {
   for (int i=0; i<detections->size; ++i) {
     apriltag_detection_t *det;
     zarray_get(detections, i, &det);
+
+    cv::Scalar color(255, 0, 0);
+    int thickness = 2;
+
+    line(frame, cv::Point2d(det->p[0][0], det->p[0][1]), cv::Point2d(det->p[1][0], det->p[1][1]), color, thickness);
+    line(frame, cv::Point2d(det->p[1][0], det->p[1][1]), cv::Point2d(det->p[2][0], det->p[2][1]), color, thickness);
+    line(frame, cv::Point2d(det->p[2][0], det->p[2][1]), cv::Point2d(det->p[3][0], det->p[3][1]), color, thickness);
+    line(frame, cv::Point2d(det->p[3][0], det->p[3][1]), cv::Point2d(det->p[0][0], det->p[0][1]), color, thickness);
   
     images.push_back({
       .id = det->id, 
