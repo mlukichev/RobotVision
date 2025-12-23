@@ -4,10 +4,12 @@
 #include <optional>
 #include <map>
 
+#include "absl/log/check.h"
+
 namespace robot_vision {
 
 CameraPositions::CameraPositions() {
-  camera_positions_[0] = Transformation((cv::Mat_<double>(4, 4) << 
+  camera_positions_[2] = Transformation((cv::Mat_<double>(4, 4) << 
     0, 0, -1, 0,
     1, 0, 0, 0,
     0, -1, 0, 0,
@@ -27,7 +29,7 @@ bool CameraPositions::CameraExists(CameraId cam) const {
 
 Transformation CameraPositions::GetCameraPositionById(CameraId cam) const {
   auto it = camera_positions_.find(cam);
-  // CHECK(it != tags_.end()) << "Tag " << tag << " doesn't exist";
+  CHECK(it != camera_positions_.end()) << "Camera " << cam << " doesn't exist";
   return it->second;
 }
 

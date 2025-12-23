@@ -4,7 +4,8 @@ package robot_vision;
 
 message CameraInTagCoords {
   int32 tag_id = 1;
-  repeated double mat = 2; // 4x4 matrix, [j*cols+i]
+  repeated double mat1 = 2; // 4x4 matrix, [j*cols+i]
+  repeated double mat2 = 3;
 }
 
 message CameraPosition {

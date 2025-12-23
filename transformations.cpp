@@ -96,6 +96,23 @@ Transformation Transformation::Inverse() {
   return Transformation(inv);
 }
 
+Transformation::operator const std::string() {
+  std::string out = "[";
+  for (int i=0; i<4; ++i) {
+    std::string line = "";
+    for (int j=0; j<3; ++j) {
+      line += std::to_string(mat_.at<double>(i, j))+", ";
+    }
+    if (i != 3) {
+      line += std::to_string(mat_.at<double>(i, 3))+",\n";
+    } else {
+      line += std::to_string(mat_.at<double>(i, 3))+"]";
+    }
+    out += line;
+  }
+  return out;
+}
+
 Transformation TransformationAverage(const std::vector<Transformation>& mats) {
   Transformation s((cv::Mat_<double>(4, 4) << 
     0, 0, 0, 0,

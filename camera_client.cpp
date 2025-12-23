@@ -70,18 +70,18 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   auto cap = captures_.find(cam_id);
 
   if (cap == captures_.end()) {
-    LOG(ERROR) << "Camera with id " << cam_id << " does not have an opened capture";
+    LOG_EVERY_N_SEC(ERROR, 1) << "Camera with id " << cam_id << " does not have an opened capture";
     return absl::InvalidArgumentError("Camera id does not have an opened capture");
   }
 
   if (!cameras_.CameraExists(cam_id)) {
-    LOG(ERROR) << "Camera with id " << cam_id << " does not have metadata";
+    LOG_EVERY_N_SEC(ERROR, 1) << "Camera with id " << cam_id << " does not have metadata";
     return absl::InvalidArgumentError("Camera id does not have metadata");
   }
 
   cv::Mat frame;
   if (!cap->second->read(frame)) {
-    LOG(ERROR) << "Could not read frame for camera id " << cam_id;
+    LOG_EVERY_N_SEC(ERROR, 1) << "Could not read frame for camera id " << cam_id;
     return absl::InternalError("Could not read from camera");
   }
 
@@ -111,12 +111,29 @@ std::optional<int> GetIdFromName(const std::string& name) {
 
 void CameraSet::BuildCameraSet() {
   absl::MutexLock lock{&mu_};
-
-  captures_.clear();
   fs::path usb_directory("/dev/v4l/by-id");
+  std::vector<int> rem;
+  rem.reserve(captures_.size());
+  for (auto& [k, cap] : captures_) {
+    cv::Mat frame;
+    if (!cap->isOpened() || !cap->read(frame)) {
+      rem.push_back(k);
+    }
+  }
+  for (int e : rem) {
+    captures_.find(e)->second.release();
+    captures_.erase(e);
+    LOG(INFO) << "Erased camera " << e <<" from CameraSet";
+  }
   for (auto& p : fs::directory_iterator(usb_directory)) {
     std::optional<int> camera_id = GetIdFromName(static_cast<fs::path>(p).filename());
     if (!camera_id.has_value()) {
+      continue;
+    }
+    auto caps = captures_.find(*camera_id);
+    cv::Mat frame;
+    if (caps != captures_.end() && caps->second->read(frame)) {
+      LOG(INFO) << "Camera " << *camera_id << " is already initialized";
       continue;
     }
     fs::path current_camera = fs::read_symlink(p);
@@ -126,7 +143,7 @@ void CameraSet::BuildCameraSet() {
     }
     int port = (int)(video_num[11]-'0');
     std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(port));
-    if (cap->isOpened()) {
+    if (cap->isOpened() && cap->read(frame)) {
       LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
       captures_[*camera_id] = std::move(cap);
     } else {
@@ -286,7 +303,7 @@ absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
     absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = camera_set_.ComputePosition(k, apriltag_size);
 
     if (!pos.ok()) {
-      LOG(ERROR) << "Could not compute camera position: " << pos.status();
+      LOG_EVERY_N_SEC(ERROR, 1) << "Could not compute camera position: " << pos.status();
       continue;
     }
 
@@ -294,15 +311,13 @@ absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
     camera_position->set_camera_id(k);
 
     for (const auto& [tag_id, transformation_pair] : *pos) {
-      CameraInTagCoords* camera_in_tag_coords1 = camera_position->add_camera_in_tag_coords();
-      camera_in_tag_coords1->set_tag_id(tag_id);
+      CameraInTagCoords* camera_in_tag_coords = camera_position->add_camera_in_tag_coords();
+      camera_in_tag_coords->set_tag_id(tag_id);
       for (double v : transformation_pair.first.ToVector()) {
-        camera_in_tag_coords1->add_mat(v);
+        camera_in_tag_coords->add_mat1(v);
       }
-      CameraInTagCoords* camera_in_tag_coords2 = camera_position->add_camera_in_tag_coords();
-      camera_in_tag_coords2->set_tag_id(tag_id);
       for (double v : transformation_pair.second.ToVector()) {
-        camera_in_tag_coords2->add_mat(v);
+        camera_in_tag_coords->add_mat2(v);
       }
     }
   }
