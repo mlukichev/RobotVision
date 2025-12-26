@@ -9,17 +9,19 @@
 
 namespace robot_vision {
 
-std::optional<std::pair<Transformation, Transformation>> GetTagInCamCoords(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size);
+std::optional<std::pair<Transformation, Transformation>> GetTagToCam(
+  const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size);
 
-std::optional<std::pair<Transformation, Transformation>> GetTagInCamCoords(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size);
+std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
+  const Camera& cam, const Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size);
 
-std::optional<std::pair<Transformation, Transformation>> GetCamInWorldCoords(const Camera& cam, const Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size);
+Transformation GetCamToWorld(const Tags& tags, TagId tag, const Transformation& camera_to_tag);
 
-Transformation GetCamInWorldCoords(const Tags& tags, TagId tag, const Transformation& camera_in_tag);
+// std::optional<std::pair<Transformation, Transformation>> GetRobotInWorldCoords(const Camera& cam, const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const std::vector<cv::Point2d>& image, double apriltag_size);
 
-std::optional<std::pair<Transformation, Transformation>> GetRobotInWorldCoords(const Camera& cam, const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const std::vector<cv::Point2d>& image, double apriltag_size);
-
-Transformation GetRobotInWorldCoords(const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& camera_in_tag);
+Transformation GetRobotToWorld
+(
+  const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& camera_to_tag);
 
 }  // namespace robot_vision
 

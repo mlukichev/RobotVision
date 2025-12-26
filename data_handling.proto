@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package robot_vision;
 
-message CameraInTagCoords {
+message TagInCamCoords {
   int32 tag_id = 1;
   repeated double mat1 = 2; // 4x4 matrix, [j*cols+i]
   repeated double mat2 = 3;
@@ -10,7 +10,7 @@ message CameraInTagCoords {
 
 message CameraPosition {
   int32 camera_id = 1;
-  repeated CameraInTagCoords camera_in_tag_coords = 2; // tag_id can be non-unique
+  repeated TagInCamCoords tag_in_cam_coords = 2; // tag_id can be non-unique
 }
 
 message SetCameraCoefficients {

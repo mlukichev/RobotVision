@@ -15,10 +15,10 @@ class Tags {
  public:
   Tags();
   bool TagExists(TagId tag) const;
-  Transformation GetTagByID(TagId tag) const;
+  const Transformation& GetTagToWorld(TagId tag) const;
    
  private:
-  std::unordered_map<int, Transformation> tags_;
+  std::unordered_map<int, Transformation> tag_to_world_;
 };
 
 }

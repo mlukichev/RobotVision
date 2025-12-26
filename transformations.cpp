@@ -62,7 +62,7 @@ Transformation Transformation::operator-(const Transformation& other) const {
   return Transformation(mat_-other.mat_);
 }
 
-cv::Mat Transformation::ToVec() {
+cv::Mat Transformation::ToVec() const {
   cv::Mat out = (cv::Mat_<double>(4, 1) << 
     mat_.at<double>(0, 3),
     mat_.at<double>(1, 3),
@@ -72,7 +72,7 @@ cv::Mat Transformation::ToVec() {
   return out;
 }
 
-cv::Vec3d Transformation::ToVec3d() {
+cv::Vec3d Transformation::ToVec3d() const {
   cv::Vec3d out = cv::Vec3d(
     mat_.at<double>(0, 3),
     mat_.at<double>(1, 3),
@@ -81,7 +81,7 @@ cv::Vec3d Transformation::ToVec3d() {
   return out;
 }
 
-cv::Mat Transformation::ToRot() {
+cv::Mat Transformation::ToRot() const {
   cv::Mat out = (cv::Mat_<double>(3, 3) << 
     mat_.at<double>(0, 0), mat_.at<double>(0, 1), mat_.at<double>(0, 2),
     mat_.at<double>(1, 0), mat_.at<double>(1, 1), mat_.at<double>(1, 2),
@@ -90,7 +90,7 @@ cv::Mat Transformation::ToRot() {
   return out;
 }
 
-Transformation Transformation::Inverse() {
+Transformation Transformation::Inverse() const {
   cv::Mat inv;
   cv::invert(mat_, inv);
   return Transformation(inv);

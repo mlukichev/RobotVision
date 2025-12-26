@@ -1,4 +1,7 @@
 #include "apriltag_detector.h"
+#include "camera_handling.h"
+#include "camera.h"
+#include "cameras.h"
 
 #include "apriltag.h"
 #include "tag36h11.h"
@@ -39,6 +42,8 @@ std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame) {
   cv::Mat gray;
   cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
+  // LOG(INFO) << "Rows, cols: " << gray.rows << " " << gray.cols;
+
   image_u8_t im = {gray.cols, gray.rows, gray.cols, gray.data};
 
   zarray_t *detections = apriltag_detector_detect(td_, &im);
@@ -46,6 +51,9 @@ std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame) {
   if (errno == EAGAIN) {
     LOG(FATAL) << "Unable to create the " << td_->nthreads << " threads requested.";
   }
+
+  Cameras cams;
+  Camera cam = cams.GetCameraByID(2);
         
   for (int i=0; i<detections->size; ++i) {
     apriltag_detection_t *det;
@@ -54,11 +62,13 @@ std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame) {
     cv::Scalar color(255, 0, 0);
     int thickness = 2;
 
-    line(frame, cv::Point2d(det->p[0][0], det->p[0][1]), cv::Point2d(det->p[1][0], det->p[1][1]), color, thickness);
-    line(frame, cv::Point2d(det->p[1][0], det->p[1][1]), cv::Point2d(det->p[2][0], det->p[2][1]), color, thickness);
-    line(frame, cv::Point2d(det->p[2][0], det->p[2][1]), cv::Point2d(det->p[3][0], det->p[3][1]), color, thickness);
-    line(frame, cv::Point2d(det->p[3][0], det->p[3][1]), cv::Point2d(det->p[0][0], det->p[0][1]), color, thickness);
-  
+    // line(frame, cv::Point2d(det->p[0][0], det->p[0][1]), cv::Point2d(det->p[1][0], det->p[1][1]), color, thickness);
+    // line(frame, cv::Point2d(det->p[1][0], det->p[1][1]), cv::Point2d(det->p[2][0], det->p[2][1]), color, thickness);
+    // line(frame, cv::Point2d(det->p[2][0], det->p[2][1]), cv::Point2d(det->p[3][0], det->p[3][1]), color, thickness);
+    // line(frame, cv::Point2d(det->p[3][0], det->p[3][1]), cv::Point2d(det->p[0][0], det->p[0][1]), color, thickness);
+    // line(frame, cv::Point2d(frame.cols/2, 0), cv::Point2d(frame.cols/2, frame.rows), color, thickness);
+    // line(frame, cv::Point2d(0, frame.rows/2), cv::Point2d(frame.cols, frame.rows/2), color, thickness);
+
     images.push_back({
       .id = det->id, 
       .points = {
@@ -68,7 +78,18 @@ std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame) {
         cv::Point2d(det->p[3][0], det->p[3][1])
       }
     });
+
+    // auto t = GetTagToCam(cam, images[i].points, 64.25);
+    // if (!t.has_value()) {
+    //   continue;
+    // }
+    // cv::Mat rot;
+    // cv::Rodrigues((*t).first.ToRot(), rot);
+    // cv::drawFrameAxes(frame, cam.GetCamMat(), cam.GetDistCoef(), rot, (*t).first.ToVec3d(), 15, 2);
   }
+
+  // cv::imshow("", frame);
+  // cv::waitKey(1);
 
   apriltag_detections_destroy(detections);
 

@@ -26,13 +26,13 @@ class Transformation {
 
   std::vector<double> ToVector() const;
 
-  cv::Vec3d ToVec3d();
+  cv::Vec3d ToVec3d() const;
 
-  cv::Mat ToRot();
+  cv::Mat ToRot() const;
 
-  cv::Mat ToVec();
+  cv::Mat ToVec() const;
 
-  Transformation Inverse();
+  Transformation Inverse() const;
 
   operator std::string const();
 

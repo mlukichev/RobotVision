@@ -93,7 +93,7 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
 
   std::unordered_map<int, std::pair<Transformation, Transformation>> out;
   for (const TagPoints& p : img_points) {
-    std::optional<std::pair<Transformation, Transformation>> out_pos = GetTagInCamCoords(cameras_.GetCameraByID(cam_id), p.points, apriltag_size);
+    std::optional<std::pair<Transformation, Transformation>> out_pos = GetTagToCam(cameras_.GetCameraByID(cam_id), p.points, apriltag_size);
     if (out_pos.has_value()) {
       out.emplace(p.id, std::move(*out_pos));
     }
@@ -232,7 +232,7 @@ absl::Status VisionSystemClient::Run(const std::string& server_address) {
     while (!stop) {
       cv.WaitWithTimeout(&threads_mutex, absl::Milliseconds(1));
       if (!stop) {
-        absl::Status status = ReportCameraPositions(64.29);
+        absl::Status status = ReportCameraPositions(64.25/*52.03*/);
         if (!status.ok()) {
           LOG(ERROR) << "Failed to report camera positions: " << status;
         }
@@ -311,7 +311,7 @@ absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
     camera_position->set_camera_id(k);
 
     for (const auto& [tag_id, transformation_pair] : *pos) {
-      CameraInTagCoords* camera_in_tag_coords = camera_position->add_camera_in_tag_coords();
+      TagInCamCoords* camera_in_tag_coords = camera_position->add_tag_in_cam_coords();
       camera_in_tag_coords->set_tag_id(tag_id);
       for (double v : transformation_pair.first.ToVector()) {
         camera_in_tag_coords->add_mat1(v);

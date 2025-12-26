@@ -16,7 +16,8 @@ namespace robot_vision {
 
 class VisionSystemCore {
  public:
-  VisionSystemCore(double max_cluster_diameter, int estimated_positions): max_cluster_diameter_{max_cluster_diameter}, estimated_positions_{estimated_positions} {}
+  VisionSystemCore(double max_cluster_diameter, int estimated_positions): 
+    max_cluster_diameter_{max_cluster_diameter}, estimated_positions_{estimated_positions} {}
   absl::Status ReportCameraPosition(const CameraPosition& camera_position);
   void ClearCameraPosition();
   std::optional<Transformation> GetRobotPosition();
@@ -28,7 +29,7 @@ class VisionSystemCore {
  private:
   absl::Mutex mu_;
   // camera id -> tag id -> matrix
-  std::unordered_map<int, std::unordered_map<int, std::pair<Transformation, Transformation>>> camera_in_tag_coords_;
+  std::unordered_map<int, std::unordered_map<int, std::pair<Transformation, Transformation>>> tag_to_cam_;
   Tags tags_;
   CameraPositions camera_positions_;
   Cameras cameras_;

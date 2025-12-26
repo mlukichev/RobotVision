@@ -18,7 +18,7 @@ using absl::StatusOr;
 absl::Status VisionSystemCore::ReportCameraPosition(const CameraPosition& camera_position) {
   std::unordered_map<int, std::pair<Transformation, Transformation>> camera_tags; // tag -> matrix
 
-  for (const CameraInTagCoords& e : camera_position.camera_in_tag_coords()) {
+  for (const TagInCamCoords& e : camera_position.tag_in_cam_coords()) {
     if (e.mat1_size() != 16 || e.mat2_size() != 16) {
       return absl::InvalidArgumentError("Wrong matrix size");
     }
@@ -38,12 +38,13 @@ absl::Status VisionSystemCore::ReportCameraPosition(const CameraPosition& camera
   }
 
   absl::MutexLock lock(&mu_);
-  camera_in_tag_coords_[camera_position.camera_id()] = std::move(camera_tags);
+  tag_to_cam_[camera_position.camera_id()] = std::move(camera_tags);
   return absl::OkStatus();
 }
 
 void VisionSystemCore::ClearCameraPosition() {
-  camera_in_tag_coords_.clear();
+  absl::MutexLock lock(&mu_);
+  tag_to_cam_.clear();
 }
 
 std::optional<Transformation> CombineTransformations(const std::vector<Transformation>& mats, double dist) {
@@ -58,7 +59,10 @@ std::optional<Transformation> CombineTransformations(const std::vector<Transform
   b.reserve(mats.size()-1);
   a.push_back(mats[0]);
   b.push_back(mats[1]);
+  // LOG(INFO) << "mat 0: (" << mats[0].ToVec3d()[0] << ", " << mats[0].ToVec3d()[1] << ", " << mats[0].ToVec3d()[2] << ")";
+  // LOG(INFO) << "mat 1: (" << mats[1].ToVec3d()[0] << ", " << mats[1].ToVec3d()[1] << ", " << mats[1].ToVec3d()[2] << ")";
   for (int i=2; i<mats.size(); ++i) {
+    // LOG(INFO) << "mat " << i << ": (" << mats[i].ToVec3d()[0] << ", " << mats[i].ToVec3d()[1] << ", " << mats[i].ToVec3d()[2] << ")";
     if(TransformationDifference(mats[i], mats[0], 0, 1) < sdist) {
       a.push_back(mats[i]);
     }
@@ -74,21 +78,33 @@ std::optional<Transformation> CombineTransformations(const std::vector<Transform
 }
 
 std::optional<Transformation> VisionSystemCore::GetRobotPosition() {
+  // Vector: (camera_id, (tag_id, [tag->cam]))
   std::vector<std::pair<int, std::pair<int, Transformation>>> mats;
   mats.reserve(estimated_positions_);
   {
     absl::MutexLock{&mu_};
-    for (auto [cam_id, m] : camera_in_tag_coords_) {
-      for (auto [tag_id, camera_in_tag] : m) {
-        mats.push_back(std::pair(cam_id, std::pair(tag_id, camera_in_tag.first)));
-        mats.push_back(std::pair(cam_id, std::pair(tag_id, camera_in_tag.second)));
+    // tag_in_cam_coords_:
+    // Map: camera_id -> (tag_id -> (First Solution, Second Solution))
+    for (auto [cam_id, m] : tag_to_cam_) {
+      for (auto [tag_id, tag_to_cam] : m) {
+        cv::Vec3d vec1 = tag_to_cam.first.ToVec3d();
+        cv::Vec3d vec2 = tag_to_cam.second.ToVec3d();
+        // LOG(INFO) << "tag in cam " << tag_id << ": (" << vec1[0] << ", " << vec1[1] << ", " << vec1[2] << ")";
+        // LOG(INFO) << "tag in cam " << tag_id << ": (" << vec2[0] << ", " << vec2[1] << ", " << vec2[2] << ")";
+        // LOG(INFO) << "distance to " << tag_id << ": " << cv::norm(vec1);
+        // LOG(INFO) << "distance to " << tag_id << ": " << cv::norm(vec2);
+        mats.push_back(std::pair(cam_id, std::pair(tag_id, tag_to_cam.first)));
+        mats.push_back(std::pair(cam_id, std::pair(tag_id, tag_to_cam.second)));
       }
     }
   }
+  // Possible
   std::vector<Transformation> sols;
   sols.reserve(mats.size()+1);
-  for (int i=0; i<mats.size(); ++i) {
-    sols.push_back(GetRobotInWorldCoords(tags_, mats[i].second.first, camera_positions_, mats[i].first, mats[i].second.second));
+  for (const auto& [cam_id, tag_transform] : mats) {
+    const auto& [tag_id, tag_to_cam] = tag_transform;
+    sols.push_back(GetRobotToWorld(
+      tags_, tag_id, camera_positions_, cam_id, /*cam_to_tag=*/tag_to_cam.Inverse()));
   }
   if (mats.empty()) {
     return std::nullopt;
