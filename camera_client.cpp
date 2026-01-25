@@ -111,7 +111,15 @@ std::optional<int> GetIdFromName(const std::string& name) {
 
 void CameraSet::BuildCameraSet() {
   absl::MutexLock lock{&mu_};
-  fs::path usb_directory("/dev/v4l/by-id");
+  fs::path usb_directory;
+  try {
+    fs::path usb_directory("/dev/v4l/by-id");
+  } catch(const std::exception& e) {
+    LOG(INFO) << "Directory /dev/v4l/by-id not found, cannot open capture:" << e.what();
+    return;
+  } catch(...) {
+    LOG(INFO) << "Unkown exception";
+  }
   std::vector<int> rem;
   rem.reserve(captures_.size());
   for (auto& [k, cap] : captures_) {

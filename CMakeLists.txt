@@ -111,3 +111,27 @@ target_link_libraries(proxy PRIVATE
   absl::flags_parse
   absl::log
 )
+
+set(JAVA_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/java_generated)
+file(MAKE_DIRECTORY ${JAVA_OUT_DIR})
+add_custom_command(
+    OUTPUT ${JAVA_OUT_DIR}/frc/robot/protos
+    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+    ARGS --java_out=${JAVA_OUT_DIR} -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/data_handling.proto
+    DEPENDS data_handling.proto
+    COMMENT "Generating Java bindings from ${CMAKE_CURRENT_SOURCE_DIR}/data_handling.proto"
+)
+add_custom_command(
+    OUTPUT ${JAVA_OUT_DIR}/frc/robot/protos/service
+    COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+    ARGS    --plugin=protoc-gen-grpc-java=${GRPC_JAVA_PLUGIN}
+            --java_out=${JAVA_OUT_DIR}
+            --grpc-java_out=$<TARGET_FILE:gRPC::grpc_java_plugin>
+            -I ${CMAKE_CURRENT_SOURCE_DIR}
+            ${CMAKE_CURRENT_SOURCE_DIR}/data_handling.proto
+    DEPENDS data_handling.proto
+    COMMENT "Generating gRPC Java bindings from ${CMAKE_CURRENT_SOURCE_DIR}/data_handling.proto"
+)
+add_custom_target(
+  generate_proto_java
+  DEPENDS ${JAVA_OUT_DIR}/frc/robot/protos ${JAVA_OUT_DIR}/frc/robot/protos/service)

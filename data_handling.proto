@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package robot_vision;
 
+option java_package = "frc.robot.protos";
+
 message TagInCamCoords {
   int32 tag_id = 1;
   repeated double mat1 = 2; // 4x4 matrix, [j*cols+i]

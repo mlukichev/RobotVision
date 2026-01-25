@@ -93,20 +93,25 @@ std::optional<std::pair<Transformation, Transformation>> GetCamToTag(
 std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
   const Camera& cam, const Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
   std::optional<std::pair<Transformation, Transformation>> camera_to_tag = GetCamToTag(cam, image, apriltag_size);
-  if (!camera_to_tag.has_value()) {
+  std::optional<Transformation> tag_to_world = tags.GetTagToWorld(tag);
+  if (!camera_to_tag.has_value() || !tag_to_world.has_value()) {
     return std::nullopt;
   }
   const auto& [cam_to_tag1, cam_to_tag2] = *camera_to_tag;
   return std::optional(
     std::pair{
-      cam_to_tag1 * tags.GetTagToWorld(tag),
-      cam_to_tag2 * tags.GetTagToWorld(tag)
+      cam_to_tag1 * (*tags.GetTagToWorld(tag)),
+      cam_to_tag2 * (*tags.GetTagToWorld(tag))
     }
   );
 }
 
-Transformation GetCamToWorld(const Tags& tags, TagId tag, const Transformation& cam_to_tag) {
-  return cam_to_tag * tags.GetTagToWorld(tag);
+std::optional<Transformation> GetCamToWorld(const Tags& tags, TagId tag, const Transformation& cam_to_tag) {
+  std::optional<Transformation> tag_to_world = tags.GetTagToWorld(tag);
+  if (!tag_to_world.has_value()) {
+    return std::nullopt;
+  }
+  return cam_to_tag * (*tag_to_world);
 }
 
 
@@ -125,10 +130,13 @@ std::optional<std::pair<Transformation, Transformation>> GetRobotToWorld(
   );
 }
 
-Transformation GetRobotToWorld(
+std::optional<Transformation> GetRobotToWorld(
   const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& cam_to_tag) {
-  Transformation cam_to_world = GetCamToWorld(tags, tag, cam_to_tag);
-  return cams.GetRobotToCamera(cam_id)*cam_to_world;
+  std::optional<Transformation> cam_to_world = GetCamToWorld(tags, tag, cam_to_tag);
+  if (!cam_to_world.has_value()) {
+    return std::nullopt;
+  }
+  return cams.GetRobotToCamera(cam_id) * (*cam_to_world);
 }
 
 }  // namespace robot_vision

@@ -23,7 +23,7 @@ bool CameraPositions::CameraExists(CameraId cam) const {
 
 const Transformation& CameraPositions::GetRobotToCamera(CameraId cam) const {
   auto it = robot_to_camera_.find(cam);
-  CHECK(it != robot_to_camera_.end()) << "Camera " << cam << " doesn't exist";
+  // CHECK(it != robot_to_camera_.end()) << "Camera " << cam << " doesn't exist";
   return it->second;
 }
 

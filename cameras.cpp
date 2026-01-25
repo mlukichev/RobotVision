@@ -27,7 +27,6 @@ bool Cameras::CameraExists(CamId camera) const {
 
 Camera Cameras::GetCameraByID(CamId camera) const {
   auto it = cameras_.find(camera);
-  // CHECK(it != cameras_.end()) << "Camera " << camera << " doesn't exist";
   return it->second;
 }
 
