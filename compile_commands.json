@@ -1,0 +1,332 @@
+[
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -DCARES_STATICLIB -Dvision_proto_EXPORTS -isystem /home/mlukichev/.conan2/p/b/grpce0275d09ad1ea/p/include -isystem /home/mlukichev/.conan2/p/b/proto3dce698720760/p/include -isystem /home/mlukichev/.conan2/p/b/zlib2a9aca3c95801/p/include -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/vision_proto.dir/data_handling.pb.cc.o -c /home/mlukichev/temp_robot_vision/data_handling.pb.cc",
+  "file": "/home/mlukichev/temp_robot_vision/data_handling.pb.cc",
+  "output": "CMakeFiles/vision_proto.dir/data_handling.pb.cc.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -DCARES_STATICLIB -Dvision_proto_EXPORTS -isystem /home/mlukichev/.conan2/p/b/grpce0275d09ad1ea/p/include -isystem /home/mlukichev/.conan2/p/b/proto3dce698720760/p/include -isystem /home/mlukichev/.conan2/p/b/zlib2a9aca3c95801/p/include -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/vision_proto.dir/data_handling.grpc.pb.cc.o -c /home/mlukichev/temp_robot_vision/data_handling.grpc.pb.cc",
+  "file": "/home/mlukichev/temp_robot_vision/data_handling.grpc.pb.cc",
+  "output": "CMakeFiles/vision_proto.dir/data_handling.grpc.pb.cc.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -Drobot_vision_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/robot_vision.dir/camera_handling.cpp.o -c /home/mlukichev/temp_robot_vision/camera_handling.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/camera_handling.cpp",
+  "output": "CMakeFiles/robot_vision.dir/camera_handling.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -Drobot_vision_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/robot_vision.dir/camera.cpp.o -c /home/mlukichev/temp_robot_vision/camera.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/camera.cpp",
+  "output": "CMakeFiles/robot_vision.dir/camera.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -Drobot_vision_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/robot_vision.dir/transformations.cpp.o -c /home/mlukichev/temp_robot_vision/transformations.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/transformations.cpp",
+  "output": "CMakeFiles/robot_vision.dir/transformations.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -Drobot_vision_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/robot_vision.dir/tags.cpp.o -c /home/mlukichev/temp_robot_vision/tags.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/tags.cpp",
+  "output": "CMakeFiles/robot_vision.dir/tags.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -Drobot_vision_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/robot_vision.dir/apriltag_detector.cpp.o -c /home/mlukichev/temp_robot_vision/apriltag_detector.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/apriltag_detector.cpp",
+  "output": "CMakeFiles/robot_vision.dir/apriltag_detector.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -Drobot_vision_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/robot_vision.dir/camera_positions.cpp.o -c /home/mlukichev/temp_robot_vision/camera_positions.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/camera_positions.cpp",
+  "output": "CMakeFiles/robot_vision.dir/camera_positions.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -Drobot_vision_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/robot_vision.dir/cameras.cpp.o -c /home/mlukichev/temp_robot_vision/cameras.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/cameras.cpp",
+  "output": "CMakeFiles/robot_vision.dir/cameras.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -DCARES_STATICLIB -Dvision_system_EXPORTS -I/home/mlukichev/temp_robot_vision -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -isystem /home/mlukichev/.conan2/p/b/grpce0275d09ad1ea/p/include -isystem /home/mlukichev/.conan2/p/b/proto3dce698720760/p/include -isystem /home/mlukichev/.conan2/p/b/zlib2a9aca3c95801/p/include -O3 -DNDEBUG -std=gnu++17 -fPIC -o CMakeFiles/vision_system.dir/vision_system.cpp.o -c /home/mlukichev/temp_robot_vision/vision_system.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/vision_system.cpp",
+  "output": "CMakeFiles/vision_system.dir/vision_system.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++  -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/camera_calib.dir/camera_calib.cpp.o -c /home/mlukichev/temp_robot_vision/camera_calib.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/camera_calib.cpp",
+  "output": "CMakeFiles/camera_calib.dir/camera_calib.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++  -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/test_position_detection.dir/test_position_detection.cpp.o -c /home/mlukichev/temp_robot_vision/test_position_detection.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/test_position_detection.cpp",
+  "output": "CMakeFiles/test_position_detection.dir/test_position_detection.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++  -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/generate_transform_matrix.dir/generate_transform_matrix.cpp.o -c /home/mlukichev/temp_robot_vision/generate_transform_matrix.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/generate_transform_matrix.cpp",
+  "output": "CMakeFiles/generate_transform_matrix.dir/generate_transform_matrix.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -DCARES_STATICLIB -I/home/mlukichev/temp_robot_vision -isystem /home/mlukichev/.conan2/p/b/grpce0275d09ad1ea/p/include -isystem /home/mlukichev/.conan2/p/b/proto3dce698720760/p/include -isystem /home/mlukichev/.conan2/p/b/zlib2a9aca3c95801/p/include -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/robot_vision_server.dir/server.cpp.o -c /home/mlukichev/temp_robot_vision/server.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/server.cpp",
+  "output": "CMakeFiles/robot_vision_server.dir/server.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -DCARES_STATICLIB -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -I/home/mlukichev/temp_robot_vision -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -isystem /usr/include/opencv4 -isystem /home/mlukichev/.conan2/p/b/grpce0275d09ad1ea/p/include -isystem /home/mlukichev/.conan2/p/b/proto3dce698720760/p/include -isystem /home/mlukichev/.conan2/p/b/zlib2a9aca3c95801/p/include -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/camera_client.dir/camera_client.cpp.o -c /home/mlukichev/temp_robot_vision/camera_client.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/camera_client.cpp",
+  "output": "CMakeFiles/camera_client.dir/camera_client.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++  -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/find_cameras.dir/find_cameras.cpp.o -c /home/mlukichev/temp_robot_vision/find_cameras.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/find_cameras.cpp",
+  "output": "CMakeFiles/find_cameras.dir/find_cameras.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision",
+  "command": "/usr/bin/c++ -DASIO_STANDALONE -DCARES_STATICLIB -I/home/mlukichev/temp_robot_vision -isystem /home/mlukichev/.conan2/p/crowcebe2f313aa192/p/include -isystem /home/mlukichev/.conan2/p/asioaf1eb798e94b4/p/include -isystem /home/mlukichev/.conan2/p/b/grpce0275d09ad1ea/p/include -isystem /home/mlukichev/.conan2/p/b/proto3dce698720760/p/include -isystem /home/mlukichev/.conan2/p/b/zlib2a9aca3c95801/p/include -isystem /home/mlukichev/.conan2/p/b/absei30c5cec2f4ac3/p/include -O3 -DNDEBUG -std=gnu++17 -o CMakeFiles/proxy.dir/proxy.cpp.o -c /home/mlukichev/temp_robot_vision/proxy.cpp",
+  "file": "/home/mlukichev/temp_robot_vision/proxy.cpp",
+  "output": "CMakeFiles/proxy.dir/proxy.cpp.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/apriltag.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/apriltag.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/apriltag.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/apriltag.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/apriltag_pose.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/apriltag_pose.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/apriltag_pose.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/apriltag_pose.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/apriltag_quad_thresh.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/apriltag_quad_thresh.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/apriltag_quad_thresh.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/apriltag_quad_thresh.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/g2d.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/g2d.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/g2d.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/g2d.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/getopt.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/getopt.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/getopt.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/getopt.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/homography.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/homography.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/homography.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/homography.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/image_u8.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/image_u8.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/image_u8.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/image_u8.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/image_u8_parallel.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/image_u8_parallel.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/image_u8_parallel.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/image_u8_parallel.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/image_u8x3.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/image_u8x3.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/image_u8x3.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/image_u8x3.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/image_u8x4.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/image_u8x4.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/image_u8x4.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/image_u8x4.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/matd.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/matd.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/matd.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/matd.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/pam.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/pam.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/pam.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/pam.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/pjpeg-idct.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/pjpeg-idct.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/pjpeg-idct.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/pjpeg-idct.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/pjpeg.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/pjpeg.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/pjpeg.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/pjpeg.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/pnm.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/pnm.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/pnm.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/pnm.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/pthreads_cross.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/pthreads_cross.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/pthreads_cross.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/pthreads_cross.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/string_util.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/string_util.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/string_util.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/string_util.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/svd22.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/svd22.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/svd22.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/svd22.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/time_util.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/time_util.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/time_util.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/time_util.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/unionfind.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/unionfind.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/unionfind.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/unionfind.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/workerpool.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/workerpool.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/workerpool.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/workerpool.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/zarray.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/zarray.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/zarray.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/zarray.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/zhash.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/zhash.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/zhash.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/zhash.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/common/zmaxheap.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/common/zmaxheap.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/common/zmaxheap.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/common/zmaxheap.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/tag16h5.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/tag16h5.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/tag16h5.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/tag16h5.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/tag25h9.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/tag25h9.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/tag25h9.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/tag25h9.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/tag36h10.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/tag36h10.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/tag36h10.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/tag36h10.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/tag36h11.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/tag36h11.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/tag36h11.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/tag36h11.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/tagCircle21h7.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/tagCircle21h7.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/tagCircle21h7.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/tagCircle21h7.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/tagCircle49h12.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/tagCircle49h12.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/tagCircle49h12.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/tagCircle49h12.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/tagCustom48h12.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/tagCustom48h12.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/tagCustom48h12.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/tagCustom48h12.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/tagStandard41h12.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/tagStandard41h12.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/tagStandard41h12.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/tagStandard41h12.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -std=gnu99 -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.dir/tagStandard52h13.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/tagStandard52h13.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/tagStandard52h13.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.dir/tagStandard52h13.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc -Dapriltag_cpython_311_x86_64_linux_gnu_EXPORTS -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/python3.11 -isystem /usr/lib/python3/dist-packages/numpy/core/include -O3 -DNDEBUG -fPIC -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag.cpython-311-x86_64-linux-gnu.dir/apriltag_pywrap.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/apriltag_pywrap.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/apriltag_pywrap.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag.cpython-311-x86_64-linux-gnu.dir/apriltag_pywrap.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/cc  -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/apriltag_demo.dir/example/apriltag_demo.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/example/apriltag_demo.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/example/apriltag_demo.c",
+  "output": "third_party/apriltag/CMakeFiles/apriltag_demo.dir/example/apriltag_demo.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag",
+  "command": "/usr/bin/c++  -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -isystem /usr/include/opencv4 -O3 -DNDEBUG -std=gnu++11 -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/opencv_demo.dir/example/opencv_demo.cc.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/example/opencv_demo.cc",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/example/opencv_demo.cc",
+  "output": "third_party/apriltag/CMakeFiles/opencv_demo.dir/example/opencv_demo.cc.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag/test",
+  "command": "/usr/bin/cc   -O3 -DNDEBUG -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/getline.dir/getline.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/test/getline.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/test/getline.c",
+  "output": "third_party/apriltag/test/CMakeFiles/getline.dir/getline.c.o"
+},
+{
+  "directory": "/home/mlukichev/temp_robot_vision/third_party/apriltag/test",
+  "command": "/usr/bin/cc  -I/home/mlukichev/temp_robot_vision/third_party/apriltag -I/apriltag -O3 -DNDEBUG -Wall -Wextra -Wpedantic -Wno-shift-negative-value -Werror -o CMakeFiles/test_detection.dir/test_detection.c.o -c /home/mlukichev/temp_robot_vision/third_party/apriltag/test/test_detection.c",
+  "file": "/home/mlukichev/temp_robot_vision/third_party/apriltag/test/test_detection.c",
+  "output": "third_party/apriltag/test/CMakeFiles/test_detection.dir/test_detection.c.o"
+}
+]

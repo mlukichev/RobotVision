@@ -99,3 +99,15 @@ target_link_libraries(camera_client PRIVATE
 add_executable(find_cameras find_cameras.cpp)
 target_link_libraries(find_cameras
   ${OpenCV_LIBRARIES})
+
+find_package(Crow REQUIRED)
+
+add_executable(proxy proxy.cpp)
+target_link_libraries(proxy PRIVATE
+  Crow::Crow
+  gRPC::grpc++
+  vision_proto
+  absl::flags
+  absl::flags_parse
+  absl::log
+)
