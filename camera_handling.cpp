@@ -93,7 +93,7 @@ std::optional<std::pair<Transformation, Transformation>> GetCamToTag(
 std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
   const Camera& cam, const Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
   std::optional<std::pair<Transformation, Transformation>> camera_to_tag = GetCamToTag(cam, image, apriltag_size);
-  std::optional<Transformation> tag_to_world = tags.GetTagToWorld(tag);
+  std::optional<std::reference_wrapper<const Transformation>> tag_to_world = tags.GetTagToWorld(tag);
   if (!camera_to_tag.has_value() || !tag_to_world.has_value()) {
     return std::nullopt;
   }
@@ -107,7 +107,7 @@ std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
 }
 
 std::optional<Transformation> GetCamToWorld(const Tags& tags, TagId tag, const Transformation& cam_to_tag) {
-  std::optional<Transformation> tag_to_world = tags.GetTagToWorld(tag);
+  std::optional<std::reference_wrapper<const Transformation>> tag_to_world = tags.GetTagToWorld(tag);
   if (!tag_to_world.has_value()) {
     return std::nullopt;
   }

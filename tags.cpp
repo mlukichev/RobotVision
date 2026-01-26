@@ -27,11 +27,11 @@ bool Tags::TagExists(TagId tag) const {
   return tag_to_world_.find(tag) != tag_to_world_.end();
 }
 
-const std::optional<Transformation>& Tags::GetTagToWorld(TagId tag) const {
+std::optional<std::reference_wrapper<const Transformation>> Tags::GetTagToWorld(TagId tag) const {
   auto it = tag_to_world_.find(tag);
   CHECK(it != tag_to_world_.end()) << "Tag " << tag << " doesn't exist";
   if (it != tag_to_world_.end()) {
-    return nullopt_ref;
+    return std::nullopt;
   }
   return it->second;
 }
