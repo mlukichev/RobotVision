@@ -14,7 +14,7 @@ find_package(OpenCV CONFIG REQUIRED)
 # Add third-party library
 add_subdirectory(third_party/apriltag)
 
-add_library(vision_proto data_handling.proto)
+add_library(vision_proto STATIC data_handling.proto)
 target_include_directories(vision_proto INTERFACE ${CMAKE_BINARY_DIR})
 target_link_libraries(vision_proto PUBLIC gRPC::grpc++)
 protobuf_generate(
@@ -26,7 +26,7 @@ protobuf_generate(
   PLUGIN protoc-gen-grpc=$<TARGET_FILE:gRPC::grpc_cpp_plugin>
   GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc)
 
-add_library(robot_vision   
+add_library(robot_vision STATIC   
   camera_handling.cpp
   camera.cpp
   transformations.cpp
@@ -40,7 +40,7 @@ target_link_libraries(robot_vision PRIVATE
   absl::flags
   absl::log)
 
-add_library(vision_system vision_system.cpp)
+add_library(vision_system STATIC vision_system.cpp)
 target_link_libraries(vision_system PUBLIC
   ${OpenCV_LIBRARIES}
   absl::flat_hash_map
