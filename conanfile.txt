@@ -3,7 +3,6 @@ abseil/20230802.1
 protobuf/3.21.12
 grpc/1.50.1
 opencv/4.12.0
-crowcpp-crow/1.3.0
 
 [options]
 opencv/*:with_v4l=True
