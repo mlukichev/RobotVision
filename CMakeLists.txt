@@ -34,7 +34,7 @@ add_library(robot_vision STATIC
   apriltag_detector.cpp
   camera_positions.cpp
   cameras.cpp)
-target_link_libraries(robot_vision PRIVATE
+target_link_libraries(robot_vision PUBLIC
   apriltag
   ${OpenCV_LIBRARIES}
   absl::flags
@@ -48,7 +48,8 @@ target_link_libraries(vision_system PUBLIC
   absl::status
   absl::statusor
   absl::synchronization
-  vision_proto)
+  vision_proto
+  robot_vision)
 
 add_executable(camera_calib  camera_calib.cpp)
 target_link_libraries(camera_calib PRIVATE 
