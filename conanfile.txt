@@ -7,7 +7,10 @@ opencv/4.12.0
 [options]
 opencv/*:with_v4l=True
 opencv/*:with_wayland=False
-opencv/*:with_gtk=True
+# Set with_gtk=True to be able to use camera_calib and display frames for debugging
+opencv/*:with_gtk=False
+opencv/*:with_ffmpeg=False
+opencv/*:shared=False
 
 [tool_requires]
 protobuf/3.21.12
