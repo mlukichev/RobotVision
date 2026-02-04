@@ -263,8 +263,10 @@ absl::Status VisionSystemClient::Run(const std::string& server_address) {
 
   ServerRequest req;
   while (stream->Read(&req)) {
+    LOG(INFO) << "Read message: " << req.DebugString();
     switch (req.msg_case()) {
     case ServerRequest::kSetCameraCoefficients:
+      LOG(INFO) << "SetCameraCoefficients";
       camera_set_.SetCameraCoefficients(
         req.set_camera_coefficients().camera_id(),
         req.set_camera_coefficients().camera_coefficients());
@@ -274,6 +276,8 @@ absl::Status VisionSystemClient::Run(const std::string& server_address) {
       break;
     }
   }
+
+  LOG(INFO) << "Read returned false. Stopping server.";
 
   {
     absl::MutexLock lock{&threads_mutex};
