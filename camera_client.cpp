@@ -111,9 +111,9 @@ std::optional<int> GetIdFromName(const std::string& name) {
 
 void CameraSet::BuildCameraSet() {
   absl::MutexLock lock{&mu_};
-  fs::path usb_directory;
+  std::unique_ptr<fs::path> usb_directory;
   try {
-    fs::path usb_directory("/dev/v4l/by-id");
+    usb_directory = std::make_unique<fs::path>("/dev/v4l/by-id");
   } catch(const std::exception& e) {
     LOG(INFO) << "Directory /dev/v4l/by-id not found, cannot open capture:" << e.what();
     return;
@@ -133,7 +133,7 @@ void CameraSet::BuildCameraSet() {
     captures_.erase(e);
     LOG(INFO) << "Erased camera " << e <<" from CameraSet";
   }
-  for (auto& p : fs::directory_iterator(usb_directory)) {
+  for (auto& p : fs::directory_iterator(*usb_directory)) {
     std::optional<int> camera_id = GetIdFromName(static_cast<fs::path>(p).filename());
     if (!camera_id.has_value()) {
       continue;
