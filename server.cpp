@@ -153,6 +153,7 @@ void VisionSystemImpl::SetCameraCoefficients(int camera_id) {
   // TODO copy protobuf set_camera_coefficients->
   // TODO use lock for clients_
   for (const std::string& client : client_keys) {
+    LOG(INFO) << "Sending camera coefficients to " << client;
     absl::Status status = SendMessage(client, msg);
     if (!status.ok()) {
       LOG(WARNING) << "Could not write camera coefficients to client: " << client;
@@ -174,17 +175,17 @@ void RunServer(VisionSystemCore* vision_system_core, const std::string& server_a
   std::atomic<bool> stop{false};
   absl::CondVar cv;
 
-  // std::thread set_camera_coefficients([&]() {
-  //   absl::MutexLock lock{&threads_mutex};
-  //   while (!stop) {
-  //     cv.WaitWithTimeout(&threads_mutex, absl::Milliseconds(1000));
-  //     if (!stop) {
-  //       for (int e : vision_system_core->GetKeys()) {
-  //         service.SetCameraCoefficients(e);
-  //       }
-  //     }
-  //   }
-  // });
+  std::thread set_camera_coefficients([&]() {
+    absl::MutexLock lock{&threads_mutex};
+    while (!stop) {
+      cv.WaitWithTimeout(&threads_mutex, absl::Milliseconds(1000));
+      if (!stop) {
+        for (int e : vision_system_core->GetKeys()) {
+          service.SetCameraCoefficients(e);
+        }
+      }
+    }
+  });
 
   LOG(INFO) << "Server listening on " << server_address;
   server->Wait();
