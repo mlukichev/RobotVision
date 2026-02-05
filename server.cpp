@@ -67,6 +67,7 @@ Status VisionSystemImpl::OpenControlStream(
   
   ClientRequest req;
   while (stream->Read(&req)) {
+    // LOG(INFO) << "Message received: " << req.DebugString();
     switch (req.msg_case()) {
     case ClientRequest::kReportCameraPositions: {
       vision_system_core_->ClearCameraPosition();

@@ -103,8 +103,13 @@ std::optional<Transformation> VisionSystemCore::GetRobotPosition() {
   sols.reserve(mats.size()+1);
   for (const auto& [cam_id, tag_transform] : mats) {
     const auto& [tag_id, tag_to_cam] = tag_transform;
-    sols.push_back(GetRobotToWorld(
-      tags_, tag_id, camera_positions_, cam_id, /*cam_to_tag=*/tag_to_cam.Inverse()));
+    std::optional<Transformation> solution = GetRobotToWorld(
+      tags_, tag_id, camera_positions_, cam_id, /*cam_to_tag=*/tag_to_cam.Inverse());
+    if (solution.has_value()) {
+      sols.push_back(std::move(*solution));
+    } else {
+      LOG(WARNING) << "No solution found for cam_id=" << cam_id << " tag_id=" << tag_id;
+    }
   }
   if (mats.empty()) {
     return std::nullopt;

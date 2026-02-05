@@ -19,7 +19,7 @@ Transformation GetCamToWorld(const Tags& tags, TagId tag, const Transformation& 
 
 // std::optional<std::pair<Transformation, Transformation>> GetRobotInWorldCoords(const Camera& cam, const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const std::vector<cv::Point2d>& image, double apriltag_size);
 
-Transformation GetRobotToWorld
+std::optional<Transformation> GetRobotToWorld
 (
   const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& camera_to_tag);
 
