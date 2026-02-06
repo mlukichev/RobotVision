@@ -100,8 +100,8 @@ std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
   const auto& [cam_to_tag1, cam_to_tag2] = *camera_to_tag;
   return std::optional(
     std::pair{
-      cam_to_tag1 * (*tags.GetTagToWorld(tag)),
-      cam_to_tag2 * (*tags.GetTagToWorld(tag))
+      tag_to_world->get() * cam_to_tag1,
+      tag_to_world->get() * cam_to_tag2
     }
   );
 }
@@ -111,7 +111,7 @@ std::optional<Transformation> GetCamToWorld(const Tags& tags, TagId tag, const T
   if (!tag_to_world.has_value()) {
     return std::nullopt;
   }
-  return cam_to_tag * (*tag_to_world);
+  return tag_to_world->get() * cam_to_tag;
 }
 
 
@@ -124,8 +124,8 @@ std::optional<std::pair<Transformation, Transformation>> GetRobotToWorld(
   const auto& [cam_to_world1, cam_to_world2] = *camera_to_world;
   return std::optional(
     std::pair{
-      cams.GetRobotToCamera(cam_id) * cam_to_world1,
-      cams.GetRobotToCamera(cam_id) * cam_to_world2 
+      cam_to_world1 * cams.GetRobotToCamera(cam_id),
+      cam_to_world2 * cams.GetRobotToCamera(cam_id)  
     }
   );
 }
@@ -136,7 +136,7 @@ std::optional<Transformation> GetRobotToWorld(
   if (!cam_to_world.has_value()) {
     return std::nullopt;
   }
-  return cams.GetRobotToCamera(cam_id) * (*cam_to_world);
+  return (*cam_to_world) * cams.GetRobotToCamera(cam_id);
 }
 
 }  // namespace robot_vision
