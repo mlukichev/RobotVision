@@ -10,9 +10,9 @@ namespace robot_vision {
 
 Tags::Tags() {
   tag_to_world_[0] = Transformation((cv::Mat_<double>(4, 4) << 
-    0, -1, 0, 0,
     0, 0, 1, 0,
-    -1, 0, 0, 0,
+    1, 0, 0, 0,
+    0, -1, 0, 0,
     0, 0, 0, 1
   ));
   tag_to_world_[1] = Transformation((cv::Mat_<double>(4, 4) << 
