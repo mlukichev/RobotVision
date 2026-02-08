@@ -98,7 +98,7 @@ Status VisionSystemImpl::GetRobotPosition(ServerContext* context, const GetRobot
   std::optional<Transformation> robot_position = vision_system_core_->GetRobotPosition();
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   std::chrono::milliseconds t = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-  LOG(INFO) << "Finished calculations in " << t << " milliseconds";
+  LOG(INFO) << "Finished calculations in " << t.count() << " milliseconds";
   if (!robot_position.has_value()) {
     LOG(ERROR) << "Empty position returned from Vision System Core";
     return Status(StatusCode::INTERNAL, "Empty position");

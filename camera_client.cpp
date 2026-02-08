@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
     absl::Status status = client.Run(absl::GetFlag(FLAGS_server_address));
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::chrono::milliseconds t = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-    LOG(INFO) << "Finished calculations in " << t << " milliseconds";
+    LOG(INFO) << "Finished calculations in " << t.count() << " milliseconds";
     if (!status.ok()) {
       LOG(ERROR) << "Server connection finished with status: " << status;
     }
