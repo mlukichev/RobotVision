@@ -3,24 +3,29 @@
 #include <opencv2/opencv.hpp>
 #include <optional>
 #include <map>
+#include <iostream>
 
 #include "absl/log/check.h"
 
 namespace robot_vision {
 
 Tags::Tags() {
-  tag_to_world_[0] = Transformation((cv::Mat_<double>(4, 4) << 
-    0, 0, -1, 0,
-    1, 0, 0, 0,
-    0, -1, 0, 0,
-    0, 0, 0, 1
-  ));
-  tag_to_world_[1] = Transformation((cv::Mat_<double>(4, 4) << 
-    -1, 0, 0, 268.2875,
-    0, 0, 1, 1030.2875,
-    0, 1, 0, 0,
-    0, 0, 0, 1
-  ));
+  int tag_num;
+  std::cin >> tag_num;
+  for (int i=0; i<tag_num; ++i) {
+    int tag;
+    std::cin >> tag;
+    cv::Mat pos(4, 4, CV_64F);
+    for (int j=0; j<4; ++j) {
+      for (int k=0; k<4; ++k) {
+        double val;
+        std::cin >> val;
+        pos.at<double>(j, k) = val;
+      }
+    }
+
+    tag_to_world_[tag] = Transformation(pos);
+  }
 }
 
 bool Tags::TagExists(TagId tag) const {

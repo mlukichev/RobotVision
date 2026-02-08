@@ -176,17 +176,17 @@ void RunServer(VisionSystemCore* vision_system_core, const std::string& server_a
   std::atomic<bool> stop{false};
   absl::CondVar cv;
 
-  // std::thread set_camera_coefficients([&]() {
-  //   absl::MutexLock lock{&threads_mutex};
-  //   while (!stop) {
-  //     cv.WaitWithTimeout(&threads_mutex, absl::Milliseconds(1000));
-  //     if (!stop) {
-  //       for (int e : vision_system_core->GetKeys()) {
-  //         service.SetCameraCoefficients(e);
-  //       }
-  //     }
-  //   }
-  // });
+  std::thread set_camera_coefficients([&]() {
+    absl::MutexLock lock{&threads_mutex};
+    while (!stop) {
+      cv.WaitWithTimeout(&threads_mutex, absl::Milliseconds(2000));
+      if (!stop) {
+        for (int e : vision_system_core->GetKeys()) {
+          service.SetCameraCoefficients(e);
+        }
+      }
+    }
+  });
 
   LOG(INFO) << "Server listening on " << server_address;
   server->Wait();
@@ -197,7 +197,7 @@ void RunServer(VisionSystemCore* vision_system_core, const std::string& server_a
     cv.SignalAll();
   }
 
-  // set_camera_coefficients.join();
+  set_camera_coefficients.join();
 
 }
 

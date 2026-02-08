@@ -173,7 +173,7 @@ void CameraSet::SetCameraCoefficients(int camera_id, const CameraCoefficients& c
     dist_coef.at<double>(0, i) = camera_coefficients.distortion_coefficients(i);
   }
   absl::MutexLock lock{&mu_};
-  //camera_metadata_.emplace(camera_id, Camera(camera_id, cam_mat, dist_coef));
+  cameras_.emplace(camera_id, Camera(camera_id, cam_mat, dist_coef));
 }
 
 std::vector<int> CameraSet::GetKeys() {

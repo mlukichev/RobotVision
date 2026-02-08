@@ -14,9 +14,10 @@ using CamId = int;
 class Cameras {
  public:
   Cameras();
-  bool CameraExists(CamId tag) const;
-  Camera GetCameraByID(CamId tag) const;
+  bool CameraExists(CamId id) const;
+  Camera GetCameraByID(CamId id) const;
   std::vector<int> GetKeys() const;
+  void emplace(int id, Camera camera);
    
  private:
   std::unordered_map<int, Camera> cameras_;
