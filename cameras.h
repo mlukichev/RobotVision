@@ -18,7 +18,7 @@ class Cameras {
   Camera GetCameraByID(CamId id) const;
   std::vector<int> GetKeys() const;
   void emplace(int id, Camera camera);
-   
+  
  private:
   std::unordered_map<int, Camera> cameras_;
 };

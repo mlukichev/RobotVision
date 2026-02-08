@@ -345,7 +345,11 @@ int main(int argc, char* argv[]) {
   robot_vision::CameraSet camera_set;
   robot_vision::VisionSystemClient client;
   while (true) {
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     absl::Status status = client.Run(absl::GetFlag(FLAGS_server_address));
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::chrono::milliseconds t = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+    LOG(INFO) << "Finished calculations in " << t << " milliseconds";
     if (!status.ok()) {
       LOG(ERROR) << "Server connection finished with status: " << status;
     }
