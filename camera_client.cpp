@@ -79,14 +79,20 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
     return absl::InvalidArgumentError("Camera id does not have metadata");
   }
 
+  std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
   cv::Mat frame;
   if (!cap->second->read(frame)) {
     LOG_EVERY_N_SEC(ERROR, 1) << "Could not read frame for camera id " << cam_id;
     return absl::InternalError("Could not read from camera");
   }
-
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+  LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms"; start = end;
   ApriltagDetector detector;
   std::vector<TagPoints> img_points = detector.Detect(frame, cameras_, cam_id);
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+  LOG(INFO) << "TIME: april_tag_detector: " << dur.count() << " ms"; start = end;
 
   // cv::imshow("camid", frame);
   // cv::waitKey(30);
@@ -98,6 +104,9 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
       out.emplace(p.id, std::move(*out_pos));
     }
   }
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+  LOG(INFO) << "TIME: solve_pnp: " << dur.count() << " ms"; start = end;
   return absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>>(std::move(out));
 }
 
