@@ -52,7 +52,7 @@ Cameras ReadCameraCoefficients(const std::string& filename) {
       for (int k=0; k<3; ++k) {
         double cam_val;
         CHECK(file >> cam_val) << "Error reading from " << filename;
-        cam_mat.at<double>(j, k, cam_val);
+        cam_mat.at<double>(j, k) = cam_val;
       }
     }
 
@@ -62,7 +62,7 @@ Cameras ReadCameraCoefficients(const std::string& filename) {
     for (int i=0; i<dist_val; ++i) {
       double dist_val;
       CHECK(file >> dist_val)  << "Error reading from " << filename;
-      dist_mat.at<double>(0, i, dist_val);
+      dist_mat.at<double>(0, i) = dist_val;
     }
 
     cameras.emplace(cam, Camera(cam, cam_mat, dist_mat));

@@ -263,7 +263,7 @@ absl::Status VisionSystemClient::Run(const std::string& server_address) {
 
   ServerRequest req;
   while (stream->Read(&req)) {
-    LOG(INFO) << "Read message: " << req.DebugString();
+    //LOG(INFO) << "Read message: " << req.DebugString();
     switch (req.msg_case()) {
     case ServerRequest::kSetCameraCoefficients:
       LOG(INFO) << "SetCameraCoefficients";
@@ -311,6 +311,7 @@ absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
   ClientRequest req;
   std::unordered_map<int, std::vector<Transformation>> out;
   robot_vision::ReportCameraPositions* report_camera_positions = req.mutable_report_camera_positions();
+  std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
   for (int k : camera_set_.GetKeys()) {
     absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = camera_set_.ComputePosition(k, apriltag_size);
 
@@ -333,6 +334,9 @@ absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
       }
     }
   }
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  std::chrono::milliseconds t = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+  LOG_EVERY_N_SEC(INFO, 1) << "Finished position computation for all cameras in " << t.count() << " milliseconds";
    
   return SendMessage(req);
 }
@@ -345,11 +349,7 @@ int main(int argc, char* argv[]) {
   robot_vision::CameraSet camera_set;
   robot_vision::VisionSystemClient client;
   while (true) {
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     absl::Status status = client.Run(absl::GetFlag(FLAGS_server_address));
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::chrono::milliseconds t = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-    LOG(INFO) << "Finished calculations in " << t.count() << " milliseconds";
     if (!status.ok()) {
       LOG(ERROR) << "Server connection finished with status: " << status;
     }
