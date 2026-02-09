@@ -30,19 +30,20 @@ void Tags::emplace(TagId tag, Transformation pos) {
 Tags ReadTags(const std::string& filename) {
 
   std::ifstream file(filename);
+  CHECK(file) << "Could not open file " << filename;
 
   Tags tags;
 
   int tag_num;
-  file >> tag_num;
+  CHECK(file >> tag_num) << "Error reading from " << filename;
   for (int i=0; i<tag_num; ++i) {
     int tag;
-    file >> tag;
+    CHECK(file >> tag) << "Error reading from " << filename;
     cv::Mat pos(4, 4, CV_64F);
     for (int j=0; j<4; ++j) {
       for (int k=0; k<4; ++k) {
         double val;
-        file >> val;
+        CHECK(file >> val) << "Error reading from " << filename;
         pos.at<double>(j, k) = val;
       }
     }

@@ -16,7 +16,8 @@ namespace robot_vision {
 
 class VisionSystemCore {
  public:
-  VisionSystemCore(double max_cluster_diameter, int estimated_positions);
+  VisionSystemCore(double max_cluster_diameter, int estimated_positions,
+    const std::string& camera_coefficients, const std::string& tag_locations);
   absl::Status ReportCameraPosition(const CameraPosition& camera_position);
   void ClearCameraPosition();
   std::optional<Transformation> GetRobotPosition();

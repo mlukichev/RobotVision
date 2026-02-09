@@ -5,6 +5,7 @@
 #include <map>
 #include <iostream>
 #include <fstream>
+#include <absl/log/check.h>
 
 namespace robot_vision {
 
@@ -37,29 +38,30 @@ Cameras ReadCameraCoefficients(const std::string& filename) {
   Cameras cameras;
 
   std::ifstream file(filename);
+  CHECK(file) << "Could not open file " << filename;
 
   int cam_num;
-  file >> cam_num;
+  CHECK(file >> cam_num) << "Error reading from " << filename;
   for (int i=0; i<cam_num; ++i) {
     int cam;
-    file >> cam;
+    CHECK(file >> cam) << "Error reading from " << filename;
     
     cv::Mat cam_mat = cv::Mat::zeros(3, 3, CV_64F);
 
     for (int j=0; j<3; ++j) {
       for (int k=0; k<3; ++k) {
         double cam_val;
-        file >> cam_val;
+        CHECK(file >> cam_val) << "Error reading from " << filename;
         cam_mat.at<double>(j, k, cam_val);
       }
     }
 
     int dist_val;
-    file >> dist_val;
+    CHECK(file >> dist_val) << "Error reading from " << filename;
     cv::Mat dist_mat = cv::Mat::zeros(1, dist_val, CV_64F);
     for (int i=0; i<dist_val; ++i) {
       double dist_val;
-      file >> dist_val;
+      CHECK(file >> dist_val)  << "Error reading from " << filename;
       dist_mat.at<double>(0, i, dist_val);
     }
 
