@@ -91,8 +91,8 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms"; start = end;
   ApriltagDetector detector;
   std::vector<TagPoints> img_points = detector.Detect(frame, cameras_, cam_id);
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+  end = std::chrono::steady_clock::now();
+  dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
   LOG(INFO) << "TIME: april_tag_detector: " << dur.count() << " ms"; start = end;
 
   // cv::imshow("camid", frame);
@@ -105,8 +105,8 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
       out.emplace(p.id, std::move(*out_pos));
     }
   }
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+  end = std::chrono::steady_clock::now();
+  dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
   LOG(INFO) << "TIME: solve_pnp: " << dur.count() << " ms"; start = end;
   return absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>>(std::move(out));
 }
