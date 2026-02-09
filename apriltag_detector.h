@@ -13,7 +13,7 @@ class ApriltagDetector: public TagDetector {
   ApriltagDetector(double quad_decimate, int quad_sigma, int nthreads, bool debug, bool refine_edges);
   ~ApriltagDetector() override;
 
-  std::vector<TagPoints> Detect(cv::Mat& frame) override;
+  std::vector<TagPoints> Detect(cv::Mat& frame, const Cameras& cams, int cam_id) override;
 
  private:
   apriltag_detector_t* td_;

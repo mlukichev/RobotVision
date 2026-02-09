@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "tags.h"
+#include "cameras.h"
 
 namespace robot_vision {
 
@@ -15,7 +16,7 @@ struct TagPoints {
 class TagDetector {
  public:
   virtual ~TagDetector() {}
-  virtual std::vector<TagPoints> Detect(cv::Mat& frame) = 0;
+  virtual std::vector<TagPoints> Detect(cv::Mat& frame, const Cameras& cams, int cam_id) = 0;
 };
 
 }  // namespace robot_vision

@@ -35,7 +35,7 @@ ApriltagDetector::~ApriltagDetector() {
   tag36h11_destroy(tf_);
 }
 
-std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame) {
+std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame, const Cameras& cams, int cam_id) {
   errno = 0;
   std::vector<TagPoints> images;
 
@@ -52,8 +52,7 @@ std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame) {
     LOG(FATAL) << "Unable to create the " << td_->nthreads << " threads requested.";
   }
 
-  Cameras cams(std::ifstream("cameras.txt"));
-  Camera cam = cams.GetCameraByID(2);
+  Camera cam = cams.GetCameraByID(cam_id);
         
   for (int i=0; i<detections->size; ++i) {
     apriltag_detection_t *det;

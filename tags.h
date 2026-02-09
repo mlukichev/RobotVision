@@ -23,6 +23,8 @@ class Tags {
   std::unordered_map<int, Transformation> tag_to_world_;
 };
 
+Tags ReadTags(const std::string& filename);
+
 }
 
 #endif // TAGS_H

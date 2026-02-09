@@ -86,7 +86,7 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   }
 
   ApriltagDetector detector;
-  std::vector<TagPoints> img_points = detector.Detect(frame);
+  std::vector<TagPoints> img_points = detector.Detect(frame, cameras_, cam_id);
 
   // cv::imshow("camid", frame);
   // cv::waitKey(30);

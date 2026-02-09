@@ -7,6 +7,7 @@
 #include <numeric>
 
 #include "camera.h"
+#include "cameras.h"
 #include "transformations.h"
 #include "apriltag_detector.h"
 
@@ -112,14 +113,15 @@ void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
   int cnt = 0;
   cv::Mat frame;
   // Main Loop
-  while (true) {
-    cap.read(frame);
+  // while (true) {
+  //   cap.read(frame);
 
-    meter.start();
-    std::vector<TagPoints> out = detector.Detect(frame);
-    meter.stop();
-    LOG(INFO) << "Apriltag Finding: " << meter.getTimeSec() << " sec";
-    meter.reset();
+  //   meter.start();
+  //   Cameras cams;
+  //   std::vector<TagPoints> out = detector.Detect(frame, cams, 0);
+  //   meter.stop();
+  //   LOG(INFO) << "Apriltag Finding: " << meter.getTimeSec() << " sec";
+  //   meter.reset();
 
     // cv::line(frame, cv::Point2i(0, 0), cv::Point2i(frame.cols-1, frame.rows-1), cv::Scalar(0, 255, 0), 2);
     // cv::line(frame, cv::Point2i(frame.cols-1, 0), cv::Point2i(0, frame.rows-1), cv::Scalar(0, 255, 0), 2);
@@ -147,10 +149,10 @@ void GetRobotPositionTest(const Camera& cam, const Tags& tags) {
     //   LOG(INFO) << "Best Solution\n" << (*best).Self();
     // }
 
-    cv::imshow("Position Detection", frame);
+  //   cv::imshow("Position Detection", frame);
 
-    cv::waitKey(100);
-  }
+  //   cv::waitKey(100);
+  // }
 }
 
 }  // namespace
