@@ -52,7 +52,7 @@ std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame) {
     LOG(FATAL) << "Unable to create the " << td_->nthreads << " threads requested.";
   }
 
-  Cameras cams;
+  Cameras cams(std::ifstream("cameras.txt"));
   Camera cam = cams.GetCameraByID(2);
         
   for (int i=0; i<detections->size; ++i) {
