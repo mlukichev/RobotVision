@@ -40,12 +40,12 @@ std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame, const Cameras& c
   errno = 0;
   std::vector<TagPoints> images;
 
-  cv::Mat gray;
-  cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+  // cv::Mat gray;
+  // cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
   // LOG(INFO) << "Rows, cols: " << gray.rows << " " << gray.cols;
 
-  image_u8_t im = {gray.cols, gray.rows, gray.cols, gray.data};
+  image_u8_t im = {frame.cols, frame.rows, frame.cols, frame.data};
 
   zarray_t *detections = apriltag_detector_detect(td_, &im);
   // TODO Debug-only: pring apriltag stats

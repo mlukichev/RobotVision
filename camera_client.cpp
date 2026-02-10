@@ -160,7 +160,12 @@ void CameraSet::BuildCameraSet() {
       continue;
     }
     int port = (int)(video_num[11]-'0');
-    std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(port));
+    std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(port, cv::CAP_V4L2));
+    (*cap).set(cv::CAP_PROP_FORMAT, CV_8UC1);
+    (*cap).set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+    (*cap).set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    (*cap).set(cv::CAP_PROP_FRAME_WIDTH, 480);
+    (*cap).set(cv::CAP_PROP_FPS, 120.0);
     if (cap->isOpened() && cap->read(frame)) {
       LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
       captures_[*camera_id] = std::move(cap);
