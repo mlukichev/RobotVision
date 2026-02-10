@@ -4,6 +4,7 @@
 #include "cameras.h"
 
 #include "apriltag.h"
+#include "common/timeprofile.h" // from apriltag
 #include "tag36h11.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
@@ -47,6 +48,8 @@ std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame, const Cameras& c
   image_u8_t im = {gray.cols, gray.rows, gray.cols, gray.data};
 
   zarray_t *detections = apriltag_detector_detect(td_, &im);
+  // TODO Debug-only: pring apriltag stats
+  timeprofile_display(td_->tp);
 
   if (errno == EAGAIN) {
     LOG(FATAL) << "Unable to create the " << td_->nthreads << " threads requested.";
