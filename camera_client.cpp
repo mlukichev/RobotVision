@@ -133,7 +133,7 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   }
 
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-  cv::Mat frame;
+  cv::UMat frame, gray;
   if (!cap->second->read(frame)) {
     LOG_EVERY_N_SEC(ERROR, 1) << "Could not read frame for camera id " << cam_id;
     return absl::InternalError("Could not read from camera");
@@ -143,7 +143,9 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
   LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms";
   start = std::chrono::steady_clock::now();
-  std::vector<TagPoints> img_points = detector_.Detect(frame, cameras_, cam_id);
+  cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+  cv::Mat gray_mat = gray.getMat(cv::ACCESS_READ);
+  std::vector<TagPoints> img_points = detector_.Detect(gray_mat, cameras_, cam_id);
   end = std::chrono::steady_clock::now();
   dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
   LOG(INFO) << "TIME: april_tag_detector: " << dur.count() << " ms"; start = end;
@@ -215,7 +217,6 @@ void CameraSet::BuildCameraSet() {
     }
     int port = (int)(video_num[11]-'0');
     std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(port, cv::CAP_V4L2));
-    // (*cap).set(cv::CAP_PROP_FORMAT, CV_8UC1);
     (*cap).set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
     (*cap).set(cv::CAP_PROP_FRAME_WIDTH, 1280);
     (*cap).set(cv::CAP_PROP_FRAME_HEIGHT, 800);
@@ -271,7 +272,7 @@ void CameraSet::BuildAcceleratedCameraSet() {
       continue;
     }
     int port = (int)(video_num[11]-'0');
-    std::string pipeline = "v4l2src device=/dev/video" + std::to_string(port) + " ! image/jpeg,width=1200,height=800 ! videoconvert ! video/x-raw, format=GRAY8 ! appsink";
+    std::string pipeline = "v4l2src device=/dev/video" + std::to_string(port) + " ! image/jpeg,width=1200,height=800 ! videoconvert ! video/x-raw, format=BGR ! appsink";
     std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(pipeline, cv::CAP_GSTREAMER));
     if (cap->isOpened() && cap->read(frame)) {
       LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
@@ -327,6 +328,15 @@ class VisionSystemClient {
   std::optional<ClientReaderWriter<ClientRequest, ServerRequest>*> server_;
   CameraSet camera_set_;
 };
+
+// class VisionPipeline {
+//  public:
+//   VisionPipeline(int camera);
+
+//  private:
+//   ApriltagDetector detector_;
+//   std::vector<std::unordered_map<int, std::pair<Transformation, Transformation>>> poses;
+// };
 
 absl::Status VisionSystemClient::Run(const std::string& server_address, bool accelerated) {
   camera_set_.BuildCameraSet(); // first invocation before connecting to server
@@ -484,7 +494,7 @@ int main(int argc, char* argv[]) {
     cv::ocl::setUseOpenCL(true);
   }
   while (true) {
-    absl::Status status = client.Run(absl::GetFlag(FLAGS_server_address), accelerated);
+    absl::Status status = client.Run(absl::GetFlag(FLAGS_server_address), true);
     if (!status.ok()) {
       LOG(ERROR) << "Server connection finished with status: " << status;
     }
