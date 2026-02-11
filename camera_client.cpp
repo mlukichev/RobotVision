@@ -58,6 +58,7 @@ class CameraSet {
   std::unordered_map<int, std::unique_ptr<cv::VideoCapture>> captures_; // ID to VideoCapture
   // std::unordered_map<int, Camera> camera_metadata_; // ID to Camera metadata
   Cameras cameras_;
+  ApriltagDetector detector_;
 };
 
 void CameraSet::TestReading(int camera_id) {
@@ -81,16 +82,18 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   }
 
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-  cv::Mat frame;
+  cv::Mat frame, gray;
   if (!cap->second->read(frame)) {
     LOG_EVERY_N_SEC(ERROR, 1) << "Could not read frame for camera id " << cam_id;
     return absl::InternalError("Could not read from camera");
   }
+  cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+  LOG(INFO) << "Rows, cols: " << gray.rows << ", " << gray.cols;
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-  LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms"; start = end;
-  ApriltagDetector detector;
-  std::vector<TagPoints> img_points = detector.Detect(frame, cameras_, cam_id);
+  LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms";
+  start = std::chrono::steady_clock::now();
+  std::vector<TagPoints> img_points = detector_.Detect(gray, cameras_, cam_id);
   end = std::chrono::steady_clock::now();
   dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
   LOG(INFO) << "TIME: april_tag_detector: " << dur.count() << " ms"; start = end;
@@ -161,10 +164,10 @@ void CameraSet::BuildCameraSet() {
     }
     int port = (int)(video_num[11]-'0');
     std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(port, cv::CAP_V4L2));
-    (*cap).set(cv::CAP_PROP_FORMAT, CV_8UC1);
+    // (*cap).set(cv::CAP_PROP_FORMAT, CV_8UC1);
     (*cap).set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-    (*cap).set(cv::CAP_PROP_FRAME_WIDTH, 640);
-    (*cap).set(cv::CAP_PROP_FRAME_WIDTH, 480);
+    (*cap).set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+    (*cap).set(cv::CAP_PROP_FRAME_HEIGHT, 800);
     (*cap).set(cv::CAP_PROP_FPS, 120.0);
     if (cap->isOpened() && cap->read(frame)) {
       LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
