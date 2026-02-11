@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <filesystem>
 #include <thread>
+#include <opencv2/core/ocl.hpp>
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
@@ -46,10 +47,12 @@ namespace fs = std::filesystem;
 class CameraSet {
  public:
   void BuildCameraSet();
+  void BuildAcceleratedCameraSet();
   void SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients);
   void TestReading(int camera_id);
 
   absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> ComputePosition(int cam_id, double apriltag_size);
+  absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> ComputePositionAccelerated(int cam_id, double apriltag_size);
 
   std::vector<int> GetKeys();
  
@@ -113,6 +116,54 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   LOG(INFO) << "TIME: solve_pnp: " << dur.count() << " ms"; start = end;
   return absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>>(std::move(out));
 }
+
+absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> CameraSet::ComputePositionAccelerated(int cam_id, double apriltag_size) {
+  absl::MutexLock lock{&mu_};
+
+  auto cap = captures_.find(cam_id);
+
+  if (cap == captures_.end()) {
+    LOG_EVERY_N_SEC(ERROR, 1) << "Camera with id " << cam_id << " does not have an opened capture";
+    return absl::InvalidArgumentError("Camera id does not have an opened capture");
+  }
+
+  if (!cameras_.CameraExists(cam_id)) {
+    LOG_EVERY_N_SEC(ERROR, 1) << "Camera with id " << cam_id << " does not have metadata";
+    return absl::InvalidArgumentError("Camera id does not have metadata");
+  }
+
+  std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+  cv::Mat frame;
+  if (!cap->second->read(frame)) {
+    LOG_EVERY_N_SEC(ERROR, 1) << "Could not read frame for camera id " << cam_id;
+    return absl::InternalError("Could not read from camera");
+  }
+  LOG(INFO) << "Rows, cols: " << frame.rows << ", " << frame.cols;
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+  LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms";
+  start = std::chrono::steady_clock::now();
+  std::vector<TagPoints> img_points = detector_.Detect(frame, cameras_, cam_id);
+  end = std::chrono::steady_clock::now();
+  dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+  LOG(INFO) << "TIME: april_tag_detector: " << dur.count() << " ms"; start = end;
+
+  // cv::imshow("camid", frame);
+  // cv::waitKey(30);
+
+  std::unordered_map<int, std::pair<Transformation, Transformation>> out;
+  for (const TagPoints& p : img_points) {
+    std::optional<std::pair<Transformation, Transformation>> out_pos = GetTagToCam(cameras_.GetCameraByID(cam_id), p.points, apriltag_size);
+    if (out_pos.has_value()) {
+      out.emplace(p.id, std::move(*out_pos));
+    }
+  }
+  end = std::chrono::steady_clock::now();
+  dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
+  LOG(INFO) << "TIME: solve_pnp: " << dur.count() << " ms"; start = end;
+  return absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>>(std::move(out));
+}
+
 
 std::optional<int> GetIdFromName(const std::string& name) {
   int loc = name.find("camera-");
@@ -179,6 +230,59 @@ void CameraSet::BuildCameraSet() {
   LOG(INFO) << "Captures size: " << captures_.size();
 }
 
+void CameraSet::BuildAcceleratedCameraSet() {
+  absl::MutexLock lock{&mu_};
+  std::unique_ptr<fs::path> usb_directory;
+  try {
+    usb_directory = std::make_unique<fs::path>("/dev/v4l/by-id");
+  } catch(const std::exception& e) {
+    LOG(INFO) << "Directory /dev/v4l/by-id not found, cannot open capture:" << e.what();
+    return;
+  } catch(...) {
+    LOG(INFO) << "Unkown exception";
+  }
+  std::vector<int> rem;
+  rem.reserve(captures_.size());
+  for (auto& [k, cap] : captures_) {
+    cv::Mat frame;
+    if (!cap->isOpened() || !cap->read(frame)) {
+      rem.push_back(k);
+    }
+  }
+  for (int e : rem) {
+    captures_.find(e)->second.release();
+    captures_.erase(e);
+    LOG(INFO) << "Erased camera " << e <<" from CameraSet";
+  }
+  for (auto& p : fs::directory_iterator(*usb_directory)) {
+    std::optional<int> camera_id = GetIdFromName(static_cast<fs::path>(p).filename());
+    if (!camera_id.has_value()) {
+      continue;
+    }
+    auto caps = captures_.find(*camera_id);
+    cv::Mat frame;
+    if (caps != captures_.end() && caps->second->read(frame)) {
+      LOG(INFO) << "Camera " << *camera_id << " is already initialized";
+      continue;
+    }
+    fs::path current_camera = fs::read_symlink(p);
+    std::string video_num = current_camera;
+    if (video_num.find("video") != 6) {
+      continue;
+    }
+    int port = (int)(video_num[11]-'0');
+    std::string pipeline = "v4l2src device=/dev/video" + std::to_string(port) + " ! image/jpeg,width=1200,height=800 ! videoconvert ! video/x-raw, format=GRAY8 ! appsink";
+    std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(pipeline, cv::CAP_GSTREAMER));
+    if (cap->isOpened() && cap->read(frame)) {
+      LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
+      captures_[*camera_id] = std::move(cap);
+    } else {
+      LOG(WARNING) << "Port " << port << " cannot be opened";
+    }
+  }
+  LOG(INFO) << "Captures size: " << captures_.size();
+}
+
 void CameraSet::SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients) {
   cv::Mat cam_mat = (cv::Mat_<double>(3, 3) << 
     camera_coefficients.camera_matrix(0), camera_coefficients.camera_matrix(1), camera_coefficients.camera_matrix(2),
@@ -214,8 +318,8 @@ class VisionSystemClient {
  public:
   VisionSystemClient() {}
 
-  absl::Status Run(const std::string& server_address);
-  absl::Status ReportCameraPositions(double apriltag_size);
+  absl::Status Run(const std::string& server_address, bool accelerated);
+  absl::Status ReportCameraPositions(double apriltag_size, bool accelerated);
  private:
   absl::Status SendMessage(const ClientRequest& msg);
 
@@ -224,7 +328,7 @@ class VisionSystemClient {
   CameraSet camera_set_;
 };
 
-absl::Status VisionSystemClient::Run(const std::string& server_address) {
+absl::Status VisionSystemClient::Run(const std::string& server_address, bool accelerated) {
   camera_set_.BuildCameraSet(); // first invocation before connecting to server
 
   LOG(INFO) << "Connecting to " << server_address;
@@ -258,7 +362,7 @@ absl::Status VisionSystemClient::Run(const std::string& server_address) {
     while (!stop) {
       cv.WaitWithTimeout(&threads_mutex, absl::Milliseconds(1));
       if (!stop) {
-        absl::Status status = ReportCameraPositions(64.25/*52.03*/);
+        absl::Status status = ReportCameraPositions(64.25/*52.03*/, accelerated);
         if (!status.ok()) {
           LOG(ERROR) << "Failed to report camera positions: " << status;
         }
@@ -272,7 +376,11 @@ absl::Status VisionSystemClient::Run(const std::string& server_address) {
       cv.WaitWithTimeout(&threads_mutex, absl::Seconds(10));
       if (!stop) {
         LOG(INFO) << "Start building CameraSet";
-        camera_set_.BuildCameraSet();
+        if (accelerated) {
+          camera_set_.BuildAcceleratedCameraSet();
+        } else {
+          camera_set_.BuildCameraSet();
+        }
         LOG(INFO) << "Built CameraSet";
         // camera_set_.TestReading(2);
       }
@@ -325,13 +433,18 @@ absl::Status VisionSystemClient::SendMessage(const ClientRequest& msg) {
   return absl::OkStatus();
 }
 
-absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size) {
+absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size, bool accelerated) {
   ClientRequest req;
   std::unordered_map<int, std::vector<Transformation>> out;
   robot_vision::ReportCameraPositions* report_camera_positions = req.mutable_report_camera_positions();
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
   for (int k : camera_set_.GetKeys()) {
-    absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos = camera_set_.ComputePosition(k, apriltag_size);
+    absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos;
+    if (accelerated) {
+      pos = camera_set_.ComputePositionAccelerated(k, apriltag_size);
+    } else {
+      pos = camera_set_.ComputePosition(k, apriltag_size);
+    }
 
     if (!pos.ok()) {
       LOG_EVERY_N_SEC(ERROR, 1) << "Could not compute camera position: " << pos.status();
@@ -366,8 +479,12 @@ int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
   robot_vision::CameraSet camera_set;
   robot_vision::VisionSystemClient client;
+  bool accelerated = cv::ocl::haveOpenCL(); 
+  if (accelerated) {
+    cv::ocl::setUseOpenCL(true);
+  }
   while (true) {
-    absl::Status status = client.Run(absl::GetFlag(FLAGS_server_address));
+    absl::Status status = client.Run(absl::GetFlag(FLAGS_server_address), accelerated);
     if (!status.ok()) {
       LOG(ERROR) << "Server connection finished with status: " << status;
     }
