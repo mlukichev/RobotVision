@@ -138,7 +138,7 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
     LOG_EVERY_N_SEC(ERROR, 1) << "Could not read frame for camera id " << cam_id;
     return absl::InternalError("Could not read from camera");
   }
-  LOG(INFO) << "Rows, cols: " << frame.rows << ", " << frame.cols;
+  LOG(INFO) << "Accelerated | Rows, cols: " << frame.rows << ", " << frame.cols;
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
   LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms";
