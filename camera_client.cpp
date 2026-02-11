@@ -166,8 +166,8 @@ void CameraSet::BuildCameraSet() {
     std::unique_ptr<cv::VideoCapture> cap(new cv::VideoCapture(port, cv::CAP_V4L2));
     // (*cap).set(cv::CAP_PROP_FORMAT, CV_8UC1);
     (*cap).set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-    (*cap).set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-    (*cap).set(cv::CAP_PROP_FRAME_HEIGHT, 800);
+    (*cap).set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    (*cap).set(cv::CAP_PROP_FRAME_HEIGHT, 400);
     (*cap).set(cv::CAP_PROP_FPS, 120.0);
     if (cap->isOpened() && cap->read(frame)) {
       LOG(INFO) << "Port: " << port << " | Camera Id: " << *camera_id << " | "<< static_cast<fs::path>(p).filename();
