@@ -52,9 +52,6 @@ Cameras ReadCameraCoefficients(const std::string& filename) {
       for (int k=0; k<3; ++k) {
         double cam_val;
         CHECK(file >> cam_val) << "Error reading from " << filename;
-        if (cam_val != 1.0) {
-          cam_val /= 2;
-        }
         cam_mat.at<double>(j, k) = cam_val;
       }
     }
