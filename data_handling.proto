@@ -56,9 +56,25 @@ message GetRobotPositionResponse {
   repeated double mat = 1; // 4x4
 }
 
+message TagLocation {
+  int32 tag_id = 1;
+  repeated double mat = 2; // 4x4
+
+}
+
+message SetTagLocationsRequest {
+  repeated TagLocation tag_locations = 1;
+}
+
+message SetTagLocationsResponse {
+
+}
+
 service VisionSystem {
   // Endpoint for camera co-processors to connect to the central unit (opened by Camera unit). 
   rpc OpenControlStream(stream ClientRequest) returns (stream ServerRequest);
   // Gets robot position in World coordinates (called by RoboRIO).
   rpc GetRobotPosition(GetRobotPositionRequest) returns (GetRobotPositionResponse);
+  // Set tag locations
+  rpc SetTagLocations(SetTagLocationsRequest) returns (SetTagLocationsResponse);
 }

@@ -13,15 +13,15 @@ std::optional<std::pair<Transformation, Transformation>> GetTagToCam(
   const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size);
 
 std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
-  const Camera& cam, const Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size);
+  const Camera& cam, Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size);
 
-Transformation GetCamToWorld(const Tags& tags, TagId tag, const Transformation& camera_to_tag);
+Transformation GetCamToWorld(Tags& tags, TagId tag, const Transformation& camera_to_tag);
 
 // std::optional<std::pair<Transformation, Transformation>> GetRobotInWorldCoords(const Camera& cam, const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const std::vector<cv::Point2d>& image, double apriltag_size);
 
 std::optional<Transformation> GetRobotToWorld
 (
-  const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& camera_to_tag);
+  Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& camera_to_tag);
 
 }  // namespace robot_vision
 

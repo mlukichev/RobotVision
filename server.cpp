@@ -39,7 +39,10 @@ class VisionSystemImpl: public VisionSystem::Service {
 
   Status GetRobotPosition(ServerContext* context, const GetRobotPositionRequest* request, GetRobotPositionResponse* response) override;
 
+  Status SetTagLocations(ServerContext* context, const SetTagLocationsRequest* request, SetTagLocationsResponse* response) override;
+
   void SetCameraCoefficients(int camera_id);
+
  private:
   absl::Status SendMessage(const std::string& client, const ServerRequest& msg);
 
@@ -114,6 +117,21 @@ Status VisionSystemImpl::GetRobotPosition(ServerContext* context, const GetRobot
   return Status();
 }
 
+Status VisionSystemImpl::SetTagLocations(ServerContext* context, const SetTagLocationsRequest* request, SetTagLocationsResponse* response) {
+  Tags tags;
+  for (const TagLocation& tag_location : request->tag_locations()) {
+    cv::Mat mat = cv::Mat::zeros(4, 4, CV_64F);
+    for (int i=0; i<4; ++i) {
+      for (int j=0; j<4; ++j) {
+        mat.at<double>(i, j) = tag_location.mat().at(i*4+j);
+      }
+    }
+    tags.emplace(tag_location.tag_id(), Transformation(mat));
+  }
+  vision_system_core_->SetTags(std::move(tags));
+  return Status::OK;
+}
+
 absl::Status VisionSystemImpl::SendMessage(const std::string& client, const ServerRequest& msg) {
   absl::MutexLock lock{&mu_};
   auto it = clients_.find(client);
@@ -169,7 +187,6 @@ void VisionSystemImpl::SetCameraCoefficients(int camera_id) {
     // ignore errors
   }
 }
-
 
 void RunServer(VisionSystemCore* vision_system_core, const std::string& server_address) {
   VisionSystemImpl service(vision_system_core);

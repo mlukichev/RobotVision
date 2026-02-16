@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include "transformations.h"
+#include "absl/synchronization/mutex.h"
 
 namespace robot_vision {
 
@@ -15,11 +16,16 @@ using TagId = int;
 
 class Tags {
  public:
+  Tags() = default;
+  Tags(Tags&& other);
+
   bool TagExists(TagId tag) const;
-  std::optional<std::reference_wrapper<const Transformation>> GetTagToWorld(TagId tag) const;
+  std::optional<Transformation> GetTagToWorld(TagId tag);
   void emplace(TagId tag, Transformation pos);
+  Tags& operator=(Tags&& other);
    
  private:
+  absl::Mutex mu_;
   std::unordered_map<int, Transformation> tag_to_world_;
 };
 

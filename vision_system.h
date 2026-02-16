@@ -25,6 +25,7 @@ class VisionSystemCore {
   std::vector<int> GetKeys();
   void SetCurrentPosition(const Transformation& position);
   Transformation GetCurrentPosition();
+  void SetTags(Tags&& tags);
 
  private:
   absl::Mutex mu_;

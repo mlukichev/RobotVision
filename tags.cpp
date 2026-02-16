@@ -10,11 +10,25 @@
 
 namespace robot_vision {
 
+Tags::Tags(Tags&& other) {
+  absl::MutexLock lock_this{&mu_};
+  absl::MutexLock lock_other{&other.mu_};
+  tag_to_world_ = std::move(other.tag_to_world_);
+}
+
 bool Tags::TagExists(TagId tag) const {
   return tag_to_world_.find(tag) != tag_to_world_.end();
 }
 
-std::optional<std::reference_wrapper<const Transformation>> Tags::GetTagToWorld(TagId tag) const {
+Tags& Tags::operator=(Tags&& other) {
+  absl::MutexLock lock_this{&mu_};
+  absl::MutexLock lock_other{&other.mu_};
+  tag_to_world_ = std::move(other.tag_to_world_);
+  return *this;
+}
+
+std::optional<Transformation> Tags::GetTagToWorld(TagId tag) {
+  absl::MutexLock lock{&mu_};
   auto it = tag_to_world_.find(tag);
   // CHECK(it != tag_to_world_.end()) << "Tag " << tag << " doesn't exist";
   if (it == tag_to_world_.end()) {
@@ -24,15 +38,14 @@ std::optional<std::reference_wrapper<const Transformation>> Tags::GetTagToWorld(
 }
 
 void Tags::emplace(TagId tag, Transformation pos) {
+  absl::MutexLock lock{&mu_};
   tag_to_world_.emplace(tag, pos);
 }
 
 Tags ReadTags(const std::string& filename) {
-
+  Tags tags;
   std::ifstream file(filename);
   CHECK(file) << "Could not open file " << filename;
-
-  Tags tags;
 
   int tag_num;
   CHECK(file >> tag_num) << "Error reading from " << filename;
@@ -51,7 +64,7 @@ Tags ReadTags(const std::string& filename) {
     tags.emplace(tag, Transformation(pos));
   }
 
-  return tags;
+  return std::move(tags);
 }
 
 }

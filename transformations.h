@@ -34,7 +34,7 @@ class Transformation {
 
   Transformation Inverse() const;
 
-  operator std::string const();
+  operator std::string() const;
 
   Transformation operator*(const Transformation& other) const;
 

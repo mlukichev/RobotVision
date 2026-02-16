@@ -96,7 +96,7 @@ Transformation Transformation::Inverse() const {
   return Transformation(inv);
 }
 
-Transformation::operator const std::string() {
+Transformation::operator std::string() const {
   std::string out = "[";
   for (int i=0; i<4; ++i) {
     std::string line = "";

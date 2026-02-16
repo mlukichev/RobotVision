@@ -89,7 +89,7 @@ std::optional<Transformation> VisionSystemCore::GetRobotPosition() {
   std::vector<std::pair<int, std::pair<int, Transformation>>> mats;
   mats.reserve(estimated_positions_);
   {
-    absl::MutexLock{&mu_};
+    absl::MutexLock lock{&mu_};
     // tag_in_cam_coords_:
     // Map: camera_id -> (tag_id -> (First Solution, Second Solution))
     for (auto [cam_id, m] : tag_to_cam_) {
@@ -146,6 +146,11 @@ void VisionSystemCore::SetCurrentPosition(const Transformation& position) {
 Transformation VisionSystemCore::GetCurrentPosition() {
   absl::MutexLock lock{&mu_};
   return position_;
+}
+
+void VisionSystemCore::SetTags(Tags&& tags) {
+  absl::MutexLock lock {&mu_};
+  tags_ = std::move(tags);
 }
 
 }  // namespace robot_vision
