@@ -16,10 +16,11 @@ namespace robot_vision {
 using absl::StatusOr;
 
 VisionSystemCore::VisionSystemCore(double max_cluster_diameter, int estimated_positions,
-  const std::string& camera_coefficients, const std::string& tag_locations): 
+  const std::string& camera_coefficients, const std::string& tag_locations, const std::string& camera_locations): 
   max_cluster_diameter_{max_cluster_diameter}, estimated_positions_{estimated_positions} {
   cameras_ = ReadCameraCoefficients(camera_coefficients);
   tags_ = ReadTags(tag_locations);
+  camera_positions_ = ReadCameraPositions (camera_locations);
 }
 
 absl::Status VisionSystemCore::ReportCameraPosition(const CameraPosition& camera_position) {

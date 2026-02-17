@@ -16,11 +16,14 @@ class CameraPositions {
   CameraPositions();
   bool CameraExists(CameraId tag) const;
   const Transformation& GetRobotToCamera(CameraId tag) const;
+  void emplace(int cam, Transformation pos);
    
  private:
   // camera-id -> (coord transformation: Robot -> Camera)
   std::unordered_map<int, Transformation> robot_to_camera_;
 };
+
+CameraPositions ReadCameraPositions(const std::string& filename);
 
 }
 

@@ -17,6 +17,7 @@
 ABSL_FLAG(std::string, server_address, "0.0.0.0:50001", "Vision system server address");
 ABSL_FLAG(std::string, camera_coefficients, "", "File with camera coefficients");
 ABSL_FLAG(std::string, tag_locations, "", "File with tag locations");
+ABSL_FLAG(std::string, camera_locations, "", "File with camera locations");
 
 namespace robot_vision {
 namespace {
@@ -233,8 +234,9 @@ int main(int argc, char* argv[]) {
 
   QCHECK(!absl::GetFlag(FLAGS_camera_coefficients).empty()) << "--camera_coefficients not specified";
   QCHECK(!absl::GetFlag(FLAGS_tag_locations).empty()) << "--tag_locations not specified";
+  QCHECK(!absl::GetFlag(FLAGS_camera_locations).empty()) << "--camera_locations not specified";
 
-  robot_vision::VisionSystemCore vision_system_core(127.0, 4, absl::GetFlag(FLAGS_camera_coefficients), absl::GetFlag(FLAGS_tag_locations));
+  robot_vision::VisionSystemCore vision_system_core(127.0, 4, absl::GetFlag(FLAGS_camera_coefficients), absl::GetFlag(FLAGS_tag_locations), absl::GetFlag(FLAGS_camera_locations));
 
   robot_vision::RunServer(&vision_system_core, absl::GetFlag(FLAGS_server_address));
 }
