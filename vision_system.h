@@ -11,6 +11,7 @@
 #include "camera_positions.h"
 #include "cameras.h"
 #include "transformations.h"
+#include "camera_handling.h"
 
 namespace robot_vision {
 
@@ -30,7 +31,7 @@ class VisionSystemCore {
  private:
   absl::Mutex mu_;
   // camera id -> tag id -> matrix
-  std::unordered_map<int, std::unordered_map<int, std::pair<Transformation, Transformation>>> tag_to_cam_;
+  std::unordered_map<int, std::unordered_map<int, AmbiguousTransformation>> tag_to_cam_;
   Tags tags_;
   CameraPositions camera_positions_;
   Cameras cameras_;

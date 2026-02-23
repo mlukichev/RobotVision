@@ -1,4 +1,5 @@
 #include <optional>
+#include <chrono>
 
 #include "vision_system.h"
 #include "absl/status/statusor.h"
@@ -14,6 +15,7 @@
 namespace robot_vision {
 
 using absl::StatusOr;
+using ms = std::chrono::milliseconds;
 
 VisionSystemCore::VisionSystemCore(double max_cluster_diameter, int estimated_positions,
   const std::string& camera_coefficients, const std::string& tag_locations, const std::string& camera_locations): 
@@ -24,25 +26,23 @@ VisionSystemCore::VisionSystemCore(double max_cluster_diameter, int estimated_po
 }
 
 absl::Status VisionSystemCore::ReportCameraPosition(const CameraPosition& camera_position) {
-  std::unordered_map<int, std::pair<Transformation, Transformation>> camera_tags; // tag -> matrix
+  std::unordered_map<int, AmbiguousTransformation> camera_tags; // tag -> matrix
 
   for (const TagInCamCoords& e : camera_position.tag_in_cam_coords()) {
     if (e.mat1_size() != 16 || e.mat2_size() != 16) {
       return absl::InvalidArgumentError("Wrong matrix size");
     }
-    camera_tags.emplace(e.tag_id(), std::pair((
-      cv::Mat_<double>(4,4) <<
-        e.mat1(0), e.mat1(1), e.mat1(2), e.mat1(3),
-        e.mat1(4), e.mat1(5), e.mat1(6), e.mat1(7),
-        e.mat1(8), e.mat1(9), e.mat1(10), e.mat1(11),
-        e.mat1(12), e.mat1(13), e.mat1(14), e.mat1(15)
-    ), (
-      cv::Mat_<double>(4,4) << 
-        e.mat2(0), e.mat2(1), e.mat2(2), e.mat2(3),
-        e.mat2(4), e.mat2(5), e.mat2(6), e.mat2(7),
-        e.mat2(8), e.mat2(9), e.mat2(10), e.mat2(11),
-        e.mat2(12), e.mat2(13), e.mat2(14), e.mat2(15)
-    )));
+    Transformation p1((cv::Mat_<double>(4,4) <<
+      e.mat1(0), e.mat1(1), e.mat1(2), e.mat1(3),
+      e.mat1(4), e.mat1(5), e.mat1(6), e.mat1(7),
+      e.mat1(8), e.mat1(9), e.mat1(10), e.mat1(11),
+      e.mat1(12), e.mat1(13), e.mat1(14), e.mat1(15)));
+
+    Transformation p2((cv::Mat_<double>(4,4) << 
+      e.mat2(0), e.mat2(1), e.mat2(2), e.mat2(3),
+      e.mat2(4), e.mat2(5), e.mat2(6), e.mat2(7),
+      e.mat2(8), e.mat2(9), e.mat2(10), e.mat2(11),
+      e.mat2(12), e.mat2(13), e.mat2(14), e.mat2(15)));
   }
 
   absl::MutexLock lock(&mu_);
@@ -95,14 +95,14 @@ std::optional<Transformation> VisionSystemCore::GetRobotPosition() {
     // Map: camera_id -> (tag_id -> (First Solution, Second Solution))
     for (auto [cam_id, m] : tag_to_cam_) {
       for (auto [tag_id, tag_to_cam] : m) {
-        cv::Vec3d vec1 = tag_to_cam.first.ToVec3d();
-        cv::Vec3d vec2 = tag_to_cam.second.ToVec3d();
+        cv::Vec3d vec1 = tag_to_cam.best.pos.ToVec3d();
+        cv::Vec3d vec2 = tag_to_cam.worse.pos.ToVec3d();
         // LOG(INFO) << "tag in cam " << tag_id << ": (" << vec1[0] << ", " << vec1[1] << ", " << vec1[2] << ")";
         // LOG(INFO) << "tag in cam " << tag_id << ": (" << vec2[0] << ", " << vec2[1] << ", " << vec2[2] << ")";
         // LOG(INFO) << "distance to " << tag_id << ": " << cv::norm(vec1);
         // LOG(INFO) << "distance to " << tag_id << ": " << cv::norm(vec2);
-        mats.push_back(std::pair(cam_id, std::pair(tag_id, tag_to_cam.first)));
-        mats.push_back(std::pair(cam_id, std::pair(tag_id, tag_to_cam.second)));
+        mats.push_back(std::pair(cam_id, std::pair(tag_id, tag_to_cam.best.pos)));
+        mats.push_back(std::pair(cam_id, std::pair(tag_id, tag_to_cam.worse.pos)));
       }
     }
   }

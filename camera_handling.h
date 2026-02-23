@@ -9,13 +9,25 @@
 
 namespace robot_vision {
 
-std::optional<std::pair<Transformation, Transformation>> GetTagToCam(
+struct TransformationWithError {
+  Transformation pos;
+  double err;
+};
+
+struct AmbiguousTransformation {
+  TransformationWithError best;
+  TransformationWithError worse;
+};
+
+
+
+std::optional<AmbiguousTransformation> GetTagToCam(
   const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size);
 
-std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
-  const Camera& cam, Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size);
+// std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
+//   const Camera& cam, Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size);
 
-Transformation GetCamToWorld(Tags& tags, TagId tag, const Transformation& camera_to_tag);
+std::optional<Transformation> GetCamToWorld(Tags& tags, TagId tag, const Transformation& camera_to_tag);
 
 // std::optional<std::pair<Transformation, Transformation>> GetRobotInWorldCoords(const Camera& cam, const Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const std::vector<cv::Point2d>& image, double apriltag_size);
 

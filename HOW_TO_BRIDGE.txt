@@ -1,0 +1,15 @@
+Create tunnel: forward server's port 22 to the local post 20001:
+(desktop term1) ssh -L 20001:10.32.60.200:22 raspberry@<wifi raspberry ip>
+
+Make sure 10.32.60.x route is deleted on raspberry, only keep default wifi route:
+(raspberry term1) sudo ip route del default via 10.32.60.4
+[see all routes with: ip route list] 
+
+Log in to server:
+(desktop term2) ssh -p 20001 oragnepi@localhost
+
+Create socks proxy on server via raspberry:
+(orangepi term3) ssh -D 1080 raspberry@<eth raspberry ip: 10.32.60.202>
+
+Use git with socks proxy:
+(orangepi term4) cd RobotVision; git -c "http.proxy=socks5://127.0.0.1:1080" pull origin master

@@ -27,7 +27,8 @@
 #include "tag_detector.h"
 #include "cameras.h"
 
-ABSL_FLAG(std::string, server_address, "10.0.0.1:50001", "Server address");
+ABSL_FLAG(std::string, server_address, "10.0.0.2:50001", "Server address");
+ABSL_FLAG(double, apriltag_size_mm, 165.1, "AprilTag size (mm)");
 
 namespace robot_vision {
 
@@ -44,6 +45,11 @@ namespace fs = std::filesystem;
 //   std::unique_ptr<cv::VideoCapture> cap_;
 // };
 
+struct PositionResult {
+  std::chrono::steady_clock::time_point capture_start;
+  std::unordered_map<int, AmbiguousTransformation> transformation;
+};
+
 class CameraSet {
  public:
   void BuildCameraSet();
@@ -51,8 +57,8 @@ class CameraSet {
   void SetCameraCoefficients(int camera_id, const CameraCoefficients& camera_coefficients);
   void TestReading(int camera_id);
 
-  absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> ComputePosition(int cam_id, double apriltag_size);
-  absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> ComputePositionAccelerated(int cam_id, double apriltag_size);
+  absl::StatusOr<PositionResult> ComputePosition(int cam_id, double apriltag_size);
+  absl::StatusOr<PositionResult> ComputePositionAccelerated(int cam_id, double apriltag_size);
 
   std::vector<int> GetKeys();
  
@@ -69,7 +75,7 @@ void CameraSet::TestReading(int camera_id) {
   captures_[camera_id]->read(frame);
 }
 
-absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> CameraSet::ComputePosition(int cam_id, double apriltag_size) {
+absl::StatusOr<PositionResult> CameraSet::ComputePosition(int cam_id, double apriltag_size) {
   absl::MutexLock lock{&mu_};
 
   auto cap = captures_.find(cam_id);
@@ -84,6 +90,7 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
     return absl::InvalidArgumentError("Camera id does not have metadata");
   }
 
+  std::chrono::steady_clock::time_point capture_start = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
   cv::Mat frame, gray;
   if (!cap->second->read(frame)) {
@@ -91,33 +98,36 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
     return absl::InternalError("Could not read from camera");
   }
   cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-  LOG(INFO) << "Rows, cols: " << gray.rows << ", " << gray.cols;
+  // LOG(INFO) << "Rows, cols: " << gray.rows << ", " << gray.cols;
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-  LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms";
+  // LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms";
   start = std::chrono::steady_clock::now();
   std::vector<TagPoints> img_points = detector_.Detect(gray, cameras_, cam_id);
   end = std::chrono::steady_clock::now();
   dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-  LOG(INFO) << "TIME: april_tag_detector: " << dur.count() << " ms"; start = end;
+  // LOG(INFO) << "TIME: april_tag_detector: " << dur.count() << " ms"; start = end;
 
   // cv::imshow("camid", frame);
   // cv::waitKey(30);
 
-  std::unordered_map<int, std::pair<Transformation, Transformation>> out;
+  std::unordered_map<int, AmbiguousTransformation> out;
   for (const TagPoints& p : img_points) {
-    std::optional<std::pair<Transformation, Transformation>> out_pos = GetTagToCam(cameras_.GetCameraByID(cam_id), p.points, apriltag_size);
-    if (out_pos.has_value()) {
-      out.emplace(p.id, std::move(*out_pos));
+    std::optional<AmbiguousTransformation> full_out_pos = GetTagToCam(cameras_.GetCameraByID(cam_id), p.points, apriltag_size);
+    if (full_out_pos.has_value()) {
+      out.emplace(p.id, std::move(*full_out_pos));
     }
   }
   end = std::chrono::steady_clock::now();
   dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-  LOG(INFO) << "TIME: solve_pnp: " << dur.count() << " ms"; start = end;
-  return absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>>(std::move(out));
+  // LOG(INFO) << "TIME: solve_pnp: " << dur.count() << " ms"; start = end;
+  return absl::StatusOr<PositionResult>({
+    capture_start,
+    std::move(out)
+  });
 }
 
-absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> CameraSet::ComputePositionAccelerated(int cam_id, double apriltag_size) {
+absl::StatusOr<PositionResult> CameraSet::ComputePositionAccelerated(int cam_id, double apriltag_size) {
   absl::MutexLock lock{&mu_};
 
   auto cap = captures_.find(cam_id);
@@ -132,6 +142,7 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
     return absl::InvalidArgumentError("Camera id does not have metadata");
   }
 
+  std::chrono::steady_clock::time_point capture_start = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
   cv::UMat frame, gray;
   if (!cap->second->read(frame)) {
@@ -141,29 +152,32 @@ absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>
   LOG(INFO) << "Accelerated | Rows, cols: " << frame.rows << ", " << frame.cols;
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   std::chrono::milliseconds dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-  LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms";
+  // LOG(INFO) << "TIME: frame_capture: " << dur.count() << " ms";
   start = std::chrono::steady_clock::now();
   cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
   cv::Mat gray_mat = gray.getMat(cv::ACCESS_READ);
   std::vector<TagPoints> img_points = detector_.Detect(gray_mat, cameras_, cam_id);
   end = std::chrono::steady_clock::now();
   dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-  LOG(INFO) << "TIME: april_tag_detector: " << dur.count() << " ms"; start = end;
+  // LOG(INFO) << "TIME: april_tag_detector: " << dur.count() << " ms"; start = end;
 
   // cv::imshow("camid", frame);
   // cv::waitKey(30);
 
-  std::unordered_map<int, std::pair<Transformation, Transformation>> out;
+  std::unordered_map<int, AmbiguousTransformation> out;
   for (const TagPoints& p : img_points) {
-    std::optional<std::pair<Transformation, Transformation>> out_pos = GetTagToCam(cameras_.GetCameraByID(cam_id), p.points, apriltag_size);
-    if (out_pos.has_value()) {
-      out.emplace(p.id, std::move(*out_pos));
+    std::optional<AmbiguousTransformation> full_out_pos = GetTagToCam(cameras_.GetCameraByID(cam_id), p.points, apriltag_size);
+    if (full_out_pos.has_value()) {
+      out.emplace(p.id, std::move(*full_out_pos));
     }
   }
   end = std::chrono::steady_clock::now();
   dur = std::chrono::duration_cast<std::chrono::milliseconds>(end-start);
-  LOG(INFO) << "TIME: solve_pnp: " << dur.count() << " ms"; start = end;
-  return absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>>(std::move(out));
+  // LOG(INFO) << "TIME: solve_pnp: " << dur.count() << " ms"; start = end;
+  return absl::StatusOr<PositionResult>({
+    capture_start,
+    std::move(out)
+  });
 }
 
 
@@ -372,7 +386,7 @@ absl::Status VisionSystemClient::Run(const std::string& server_address, bool acc
     while (!stop) {
       cv.WaitWithTimeout(&threads_mutex, absl::Milliseconds(1));
       if (!stop) {
-        absl::Status status = ReportCameraPositions(64.25/*52.03*/, accelerated);
+        absl::Status status = ReportCameraPositions(absl::GetFlag(FLAGS_apriltag_size_mm)/2000, accelerated);
         if (!status.ok()) {
           LOG(ERROR) << "Failed to report camera positions: " << status;
         }
@@ -449,30 +463,37 @@ absl::Status VisionSystemClient::ReportCameraPositions(double apriltag_size, boo
   robot_vision::ReportCameraPositions* report_camera_positions = req.mutable_report_camera_positions();
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
   for (int k : camera_set_.GetKeys()) {
-    absl::StatusOr<std::unordered_map<int, std::pair<Transformation, Transformation>>> pos;
+    absl::StatusOr<PositionResult> full_pos;
     if (accelerated) {
-      pos = camera_set_.ComputePositionAccelerated(k, apriltag_size);
+      full_pos = camera_set_.ComputePositionAccelerated(k, apriltag_size);
     } else {
-      pos = camera_set_.ComputePosition(k, apriltag_size);
+      full_pos = camera_set_.ComputePosition(k, apriltag_size);
     }
 
-    if (!pos.ok()) {
-      LOG_EVERY_N_SEC(ERROR, 1) << "Could not compute camera position: " << pos.status();
+    if (!full_pos.ok()) {
+      LOG_EVERY_N_SEC(ERROR, 1) << "Could not compute camera position: " << full_pos.status();
       continue;
     }
 
+    std::chrono::steady_clock::time_point capture_end = std::chrono::steady_clock::now();
+    std::chrono::microseconds latency_us = std::chrono::duration_cast<std::chrono::microseconds>(capture_end - full_pos->capture_start);
     CameraPosition* camera_position = report_camera_positions->add_camera_position();
     camera_position->set_camera_id(k);
 
-    for (const auto& [tag_id, transformation_pair] : *pos) {
-      TagInCamCoords* camera_in_tag_coords = camera_position->add_tag_in_cam_coords();
-      camera_in_tag_coords->set_tag_id(tag_id);
-      for (double v : transformation_pair.first.ToVector()) {
-        camera_in_tag_coords->add_mat1(v);
+    for (const auto& [tag_id, ambiguous_tranformation] : full_pos->transformation) {
+      TagInCamCoords* tag_in_cam_coords = camera_position->add_tag_in_cam_coords();
+      tag_in_cam_coords->set_latency_us(latency_us.count());
+      tag_in_cam_coords->set_tag_id(tag_id);
+      for (double v : ambiguous_tranformation.best.pos.ToVector()) {
+        tag_in_cam_coords->add_mat1(v);
+        tag_in_cam_coords->add_nwu_best_pose(v);
       }
-      for (double v : transformation_pair.second.ToVector()) {
-        camera_in_tag_coords->add_mat2(v);
+      tag_in_cam_coords->set_best_reprojection_error(ambiguous_tranformation.best.err);
+      for (double v : ambiguous_tranformation.worse.pos.ToVector()) {
+        tag_in_cam_coords->add_mat2(v);
+        tag_in_cam_coords->add_nwu_worse_pose(v);
       }
+      tag_in_cam_coords->set_worse_reprojection_error(ambiguous_tranformation.worse.err);
     }
   }
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();

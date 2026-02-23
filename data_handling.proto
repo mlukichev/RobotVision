@@ -6,8 +6,17 @@ option java_package = "frc.robot.protos";
 
 message TagInCamCoords {
   int32 tag_id = 1;
-  repeated double mat1 = 2; // 4x4 matrix, [j*cols+i]
+
+  repeated double mat1 = 2; // 4x4 matrix, [i*cols+j]
   repeated double mat2 = 3;
+
+  // Affine transformation tag coord -> cam coord in NWU
+  repeated double nwu_best_pose = 4; // 4x4 matrix, [i*cols+j]
+  repeated double nwu_worse_pose = 5;
+  double best_reprojection_error = 6;
+  double worse_reprojection_error = 7;
+  // Latency (time since frame capture) in microseconds
+  int64 latency_us = 8;
 }
 
 message CameraPosition {
@@ -31,7 +40,6 @@ message Telemetry {
 
 message ReportCameraPositions {
   repeated CameraPosition camera_position = 1;
-  repeated Telemetry telemetry = 2;
 }
 
 message ClientRequest {

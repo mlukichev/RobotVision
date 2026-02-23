@@ -49,7 +49,7 @@ std::vector<TagPoints> ApriltagDetector::Detect(cv::Mat& frame, const Cameras& c
 
   zarray_t *detections = apriltag_detector_detect(td_, &im);
   // TODO Debug-only: pring apriltag stats
-  timeprofile_display(td_->tp);
+  // timeprofile_display(td_->tp);
 
   if (errno == EAGAIN) {
     LOG(FATAL) << "Unable to create the " << td_->nthreads << " threads requested.";

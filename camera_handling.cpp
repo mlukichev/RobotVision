@@ -12,13 +12,37 @@
 #include "tag36h11.h"
 #include "tags.h"
 #include "camera_positions.h"
+#include "camera_handling.h"
 
 namespace robot_vision {
 
 // Finds Tranfomration from Tag coord sys to Cam coord sys
 // Apriltag size is the 1/2 length of one square
-std::optional<std::pair<Transformation, Transformation>> GetTagToCam(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
+std::optional<AmbiguousTransformation> GetTagToCam(const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
+
+  static Transformation edn_in_nwu((cv::Mat_<double>(4, 4) << 
+    0, 0, 1, 0,
+    -1, 0, 0, 0,
+    0, -1, 0, 0,
+    0, 0, 0, 1
+  ));
+
+  static Transformation nwu_in_edn((cv::Mat_<double>(4, 4) << 
+    0, -1, 0, 0,
+    0, 0, -1, 0,
+    1, 0, 0, 0,
+    0, 0, 0, 1
+  ));
+
+  // Rotates 180 deg around Y in EDN 
+  static Transformation rotate_tag_face((cv::Mat_<double>(4, 4) <<
+    -1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, -1, 0,
+    0, 0, 0, 1
+  ));
   
+
   // half of apritag size
   double hs = apriltag_size;
   std::vector<cv::Point3d> object = {
@@ -31,19 +55,9 @@ std::optional<std::pair<Transformation, Transformation>> GetTagToCam(const Camer
   std::vector<cv::Mat> tvec;
   std::vector<cv::Mat> rvec;
 
-  // cv::Mat rot_e = (cv::Mat_<double>(3, 3) << 
-  //   1, 0, 0,
-  //   0, 1, 0,
-  //   0, 0, 1
-  // );
-
-  // cv::Mat rvec_e;
-
-  // cv::Rodrigues(rot_e, rvec_e);
-
-  // cv::Vec3d tvec_e(0, 0, -1102.36);
-
-  // cv::Mat rerror;
+  cv::Mat rvec_e;
+  cv::Mat tvec_e;
+  std::vector<double> rerror;
 
   if (cv::solvePnPGeneric(
     object,
@@ -53,58 +67,64 @@ std::optional<std::pair<Transformation, Transformation>> GetTagToCam(const Camer
     rvec,
     tvec,
     false,
-    cv::SOLVEPNP_IPPE_SQUARE/*,*/
-    // rvec_e,
-    // tvec_e,
-    // rerror
+    cv::SOLVEPNP_IPPE_SQUARE,
+    rvec_e,
+    tvec_e,
+    rerror
   )) {
 
-    // LOG(INFO) << "Reprojection error: \n" << rerror;
+    double best_reprojection_error = rerror[0];
+    double worse_reprojection_error = rerror[1];
 
     cv::Mat rot1, rot2;
     cv::Rodrigues(rvec[0], rot1);
     cv::Rodrigues(rvec[1], rot2);
 
-    Transformation p1 = Transformation(tvec[0], rot1);
-    Transformation p2 = Transformation(tvec[1], rot2);
-    
-    return std::pair(p1, p2);
+    Transformation p1 = edn_in_nwu * Transformation(tvec[0], rot1) * rotate_tag_face * nwu_in_edn;
+    Transformation p2 = edn_in_nwu * Transformation(tvec[1], rot2) * rotate_tag_face * nwu_in_edn;
+
+    return AmbiguousTransformation{
+      .best = {
+        p1, best_reprojection_error
+      },
+      .worse = {
+        p2, worse_reprojection_error
+      }
+    };
   }
 
   return std::nullopt;
 }
 
-// Returns 4D transformation: Camera -> Tag coord
-std::optional<std::pair<Transformation, Transformation>> GetCamToTag(
-  const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
-  // Transofrmation: Tag -> Camera coord
-  std::optional<std::pair<Transformation, Transformation>> tag_to_cam = GetTagToCam(cam, image, apriltag_size);
-  if (!tag_to_cam.has_value()) {
-    return std::nullopt;
-  }
+// // Returns 4D transformation: Camera -> Tag coord
+// std::optional<std::pair<std::pair<Transformation, Transformation>, std::pair<ReprojectionError, ReprojectionError>>> GetCamToTag(
+//   const Camera& cam, const std::vector<cv::Point2d>& image, double apriltag_size) {
+//   // Transofrmation: Tag -> Camera coord
+//   std::optional<std::pair<std::pair<Transformation, Transformation>, std::pair<ReprojectionError, ReprojectionError>>>tag_to_cam = GetTagToCam(cam, image, apriltag_size);
+//   if (!tag_to_cam.has_value()) {
+//     return std::nullopt;
+//   }
 
-  auto [tag_to_cam1, tag_to_cam2] = *tag_to_cam;
-  return std::pair{
-    tag_to_cam1.Inverse(), 
-    tag_to_cam2.Inverse()
-  };
-}
+//   auto [tag_to_cam1, tag_to_cam2] = tag_to_cam->first;
+//   auto [e1, e2] = tag_to_cam->second;
+//   return std::pair(std::pair(tag_to_cam1.Inverse(), tag_to_cam2.Inverse()), std::pair(e1, e2));
+// }
 
-std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
-  const Camera& cam, Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
-  std::optional<std::pair<Transformation, Transformation>> camera_to_tag = GetCamToTag(cam, image, apriltag_size);
-  std::optional<Transformation> tag_to_world = tags.GetTagToWorld(tag);
-  if (!camera_to_tag.has_value() || !tag_to_world.has_value()) {
-    return std::nullopt;
-  }
-  const auto& [cam_to_tag1, cam_to_tag2] = *camera_to_tag;
-  return std::optional(
-    std::pair{
-      (*tag_to_world) * cam_to_tag1,
-      (*tag_to_world) * cam_to_tag2
-    }
-  );
-}
+// std::optional<std::pair<Transformation, Transformation>> GetCamToWorld(
+//   const Camera& cam, Tags& tags, TagId tag, const std::vector<cv::Point2d>& image, double apriltag_size) {
+//   std::optional<std::pair<Transformation, Transformation>> camera_to_tag = GetCamToTag(cam, image, apriltag_size);
+//   std::optional<Transformation> tag_to_world = tags.GetTagToWorld(tag);
+//   if (!camera_to_tag.has_value() || !tag_to_world.has_value()) {
+//     return std::nullopt;
+//   }
+//   const auto& [cam_to_tag1, cam_to_tag2] = *camera_to_tag;
+//   return std::optional(
+//     std::pair{
+//       (*tag_to_world) * cam_to_tag1,
+//       (*tag_to_world) * cam_to_tag2
+//     }
+//   );
+// }
 
 std::optional<Transformation> GetCamToWorld(Tags& tags, TagId tag, const Transformation& cam_to_tag) {
   std::optional<Transformation> tag_to_world = tags.GetTagToWorld(tag);
@@ -115,20 +135,20 @@ std::optional<Transformation> GetCamToWorld(Tags& tags, TagId tag, const Transfo
 }
 
 
-std::optional<std::pair<Transformation, Transformation>> GetRobotToWorld(
-  const Camera& cam, Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const std::vector<cv::Point2d>& image, double apriltag_size) {
-  std::optional<std::pair<Transformation, Transformation>> camera_to_world = GetCamToWorld(cam, tags, tag, image, apriltag_size);
-  if (!camera_to_world.has_value()) {
-    return std::nullopt;
-  }
-  const auto& [cam_to_world1, cam_to_world2] = *camera_to_world;
-  return std::optional(
-    std::pair{
-      cam_to_world1 * cams.GetRobotToCamera(cam_id),
-      cam_to_world2 * cams.GetRobotToCamera(cam_id)  
-    }
-  );
-}
+// std::optional<std::pair<Transformation, Transformation>> GetRobotToWorld(
+//   const Camera& cam, Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const std::vector<cv::Point2d>& image, double apriltag_size) {
+//   std::optional<std::pair<Transformation, Transformation>> camera_to_world = GetCamToWorld(cam, tags, tag, image, apriltag_size);
+//   if (!camera_to_world.has_value()) {
+//     return std::nullopt;
+//   }
+//   const auto& [cam_to_world1, cam_to_world2] = *camera_to_world;
+//   return std::optional(
+//     std::pair{
+//       cam_to_world1 * cams.GetRobotToCamera(cam_id),
+//       cam_to_world2 * cams.GetRobotToCamera(cam_id)  
+//     }
+//   );
+// }
 
 std::optional<Transformation> GetRobotToWorld(
   Tags& tags, TagId tag, const CameraPositions& cams, CameraId cam_id, const Transformation& cam_to_tag) {
